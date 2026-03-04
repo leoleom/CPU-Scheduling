@@ -12,7 +12,8 @@ SRCS = $(SRC_DIR)/main.c \
        $(SRC_DIR)/rr.c \
        $(SRC_DIR)/mlfq.c \
        $(SRC_DIR)/metrics.c \
-       $(SRC_DIR)/gantt.c
+       $(SRC_DIR)/gantt.c \
+	   $(SRC_DIR)/utils.c 
 
 OBJS = $(SRCS:.c=.o)                
 TARGET = schedsim
