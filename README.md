@@ -1,2 +1,5 @@
 # CPU-Scheduling
-CMSC 125 Lab 2 
+
+#### Creators:
+Leona Mae Blancaflor
+Chrystie Rae A. Sajorne
