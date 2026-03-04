@@ -13,6 +13,8 @@ typedef struct {
     int response_time;
     int priority;        // For MLFQ
     int time_in_queue;   // For MLFQ allotment tracking
+
+    struct Process *next;   //linked list
 } Process;
 
 #endif

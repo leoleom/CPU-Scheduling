@@ -8,8 +8,12 @@ typedef struct {
     Process *processes;     // Array of all processes
     int num_processes;      // Number of processes
     int current_time;       // Current simulation time
-    // ... additional fields for metrics, Gantt chart, etc.
-    // Recall: CMSC 141
+
+    MLFQQueue ready_queue;   //for fcfs and rr
+    Process *current_process; 
+
+    char *gantt_chart;       
+    int gantt_size;          
 } SchedulerState;
 
 // Return 0 on success, -1 on error (command line etiquette)
