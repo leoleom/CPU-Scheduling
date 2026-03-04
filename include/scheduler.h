@@ -16,6 +16,8 @@ typedef struct {
     int gantt_size;          
 } SchedulerState;
 
+void init_scheduler(SchedulerState *state);
+
 // Return 0 on success, -1 on error (command line etiquette)
 int schedule_fcfs(SchedulerState *state);
 int schedule_sjf(SchedulerState *state);
