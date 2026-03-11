@@ -19,32 +19,36 @@ void init_scheduler(SchedulerState *state) {
 }
 
 /* used for all algorithms */
-void enqueue(MLFQQueue *queue, Process *proc) {
-    proc->next = NULL;
+void enqueue(Queue *queue, Process *proc) {
+    Node *new_node = (Node*) malloc(sizeof(Node));
+    new_node->process = proc;
+    new_node->next = NULL;
 
-    //check if empty
-    if (queue->tail == NULL) {
-        queue->head = queue->tail = proc;
+    if (queue->tail == NULL) {  // empty queue
+        queue->head = queue->tail = new_node;
     } else {
-        queue->tail->next = proc;       //link last process to new one
-        queue->tail = proc;             //update the tail
+        queue->tail->next = new_node;
+        queue->tail = new_node;
     }
 
     queue->size++;
 }
 
-Process* dequeue(MLFQQueue *queue) {
+Node* dequeue(Queue *queue) {
     if (queue->head == NULL)        //check if empty
         return NULL;
 
-    Process *proc = queue->head;       //save the process
+    Node *temp = queue->head;
     queue->head = queue->head->next;   //move the head to the next process
 
     if (queue->head == NULL)           //if queue is now empty
         queue->tail = NULL;
 
-    proc->next = NULL;                //delete the reference
+    temp->next = NULL;                //delete the reference
     queue->size--;
 
-    return proc;
+    return temp;
 }
+
+
+//make min-heap here
