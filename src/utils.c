@@ -18,7 +18,7 @@ void init_scheduler(SchedulerState *state) {
     }
 }
 
-/* used for all algorithms */
+/* used for fcfs and rr */
 void enqueue(Queue *queue, Process *proc) {
     Node *new_node = (Node*) malloc(sizeof(Node));
     new_node->process = proc;
@@ -49,6 +49,3 @@ Node* dequeue(Queue *queue) {
 
     return temp;
 }
-
-
-//make min-heap here

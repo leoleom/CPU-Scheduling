@@ -17,7 +17,6 @@ typedef struct {
     //store metrics
 } SchedulerState;
 
-
 typedef struct Node {
     Process *process;
     struct Node *next;
@@ -29,9 +28,10 @@ typedef struct {
     int size;
 } Queue;
 
-
-
 void init_scheduler(SchedulerState *state);
+
+void enqueue(Queue *queue, Process *proc);
+Node* dequeue(Queue *queue);
 
 // Return 0 on success, -1 on error (command line etiquette)
 int schedule_fcfs(SchedulerState *state);
