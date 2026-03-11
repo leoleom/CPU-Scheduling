@@ -4,6 +4,17 @@
 #include "process.h"
 #include "mlfq.h"
 
+typedef struct Node {
+    Process *process;
+    struct Node *next;
+} Node;
+
+typedef struct {
+    Node *head;
+    Node *tail;
+    int size;
+} Queue;
+
 typedef struct {
     Process *processes;     // Array of all processes
     int num_processes;      // Number of processes
@@ -16,17 +27,6 @@ typedef struct {
 
     //store metrics
 } SchedulerState;
-
-typedef struct Node {
-    Process *process;
-    struct Node *next;
-} Node;
-
-typedef struct {
-    Node *head;
-    Node *tail;
-    int size;
-} Queue;
 
 void init_scheduler(SchedulerState *state);
 
