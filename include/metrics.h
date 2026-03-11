@@ -5,6 +5,8 @@
 
 void calculate_metrics(Process *processes, int n);
 double calculate_average_turnaround(Process *processes, int n);
+double calculate_average_waiting(Process *processes, int n);
+double calculate_average_response(Process *processes, int n);
 
 #endif
 

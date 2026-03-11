@@ -22,3 +22,19 @@ double calculate_average_turnaround(Process *processes, int n) {
     }
     return sum / n;
 }
+
+double calculate_average_waiting(Process *processes, int n) {
+    double sum = 0.0;
+    for (int i = 0; i < n; i++) {
+        sum += processes[i].waiting_time;
+    }
+    return sum / n;
+}
+
+double calculate_average_response(Process *processes, int n) {
+    double sum = 0.0;
+    for (int i = 0; i < n; i++) {
+        sum += processes[i].response_time;
+    }
+    return sum / n;
+}
