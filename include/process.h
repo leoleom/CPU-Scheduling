@@ -1,6 +1,7 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
+
 typedef struct {
     char pid[16];
     int arrival_time;
@@ -14,7 +15,9 @@ typedef struct {
     int priority;        // For MLFQ
     int time_in_queue;   // For MLFQ allotment tracking
 
-    struct Process *next;   //linked list
 } Process;
+
+
+
 
 #endif

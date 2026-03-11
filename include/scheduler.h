@@ -9,12 +9,27 @@ typedef struct {
     int num_processes;      // Number of processes
     int current_time;       // Current simulation time
 
-    MLFQQueue ready_queue;   //for fcfs and rr
-    Process *current_process; 
-
+    Queue ready_queue;
+    Process *current_process;  // current running process
     char *gantt_chart;       
     int gantt_size;          
+
+    //store metrics
 } SchedulerState;
+
+
+typedef struct Node {
+    Process *process;
+    struct Node *next;
+} Node;
+
+typedef struct {
+    Node *head;
+    Node *tail;
+    int size;
+} Queue;
+
+
 
 void init_scheduler(SchedulerState *state);
 

@@ -7,8 +7,8 @@ typedef struct {
     int level;              // Queue priority level (0 = highest)
     int time_quantum;       // Time slice for this queue (-1 for FCFS)
     int allotment;          // Max time before demotion (-1 for infinite)
-    Process *head;          // head of linked list
-    Process *tail;          // tail of linked list
+    Node *head;          // head of linked list
+    Node *tail;          // tail of linked list
     int size;               // Current queue size
 } MLFQQueue;
 
