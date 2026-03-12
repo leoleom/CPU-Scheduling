@@ -2,7 +2,7 @@
 #define SCHEDULER_H
 
 #include "process.h"
-#include "mlfq.h"
+
 
 typedef struct Node {
     Process *process;
@@ -14,6 +14,8 @@ typedef struct {
     Node *tail;
     int size;
 } Queue;
+
+#include "mlfq.h"
 
 typedef struct {
     Process *processes;     // Array of all processes
