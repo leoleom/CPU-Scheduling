@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include "heap.h"
 
-static void swap(Process *a, Process *b) {
-    Process temp = *a;
+static void swap(Process **a, Process **b) {
+    Process *temp = *a;
     *a = *b;
     *b = temp;
 }
@@ -11,7 +11,7 @@ static void swap(Process *a, Process *b) {
 static void heapify_up(MinHeap *heap, int index, int (*cmp)(Process, Process)) {
     while (index > 0) {
         int parent = (index - 1) / 2;
-        if (cmp(heap->process[index], heap->process[parent]) < 0) {
+        if (cmp(*heap->process[index], *heap->process[parent]) < 0) {
             swap(&heap->process[index], &heap->process[parent]);
             index = parent;
         } else {
@@ -28,9 +28,9 @@ static void heapify_down(MinHeap *heap, int index, int (*cmp)(Process, Process))
         right = 2 * index + 2;
         smallest = index;
 
-        if (left < heap->size && cmp(heap->process[left], heap->process[smallest]) < 0)
+        if (left < heap->size && cmp(*heap->process[left], *heap->process[smallest]) < 0)
             smallest = left;
-        if (right < heap->size && cmp(heap->process[right], heap->process[smallest]) < 0)
+        if (right < heap->size && cmp(*heap->process[right], *heap->process[smallest]) < 0)
             smallest = right;
 
         if (smallest != index) {
@@ -52,10 +52,10 @@ MinHeap* create_heap(int capacity) {
 }
 
 // insert a process
-void heap_insert(MinHeap *heap, Process proc, int (*cmp)(Process, Process)) {
+void heap_insert(MinHeap *heap, Process *proc, int (*cmp)(Process, Process)) {
     if (heap->size == heap->capacity) {
         heap->capacity *= 2;
-        heap->process = realloc(heap->process, heap->capacity * sizeof(Process));
+        heap->process = realloc(heap->process, heap->capacity * sizeof(Process*));
     }
 
     heap->process[heap->size] = proc;
@@ -64,10 +64,10 @@ void heap_insert(MinHeap *heap, Process proc, int (*cmp)(Process, Process)) {
 }
 
 // extract min process
-Process heap_extract_min(MinHeap *heap, int (*cmp)(Process, Process)) {
-    if (heap->size == 0) return (Process){0};  // empty heap
+Process* heap_extract_min(MinHeap *heap, int (*cmp)(Process, Process)) {
+    if (heap->size == 0) return NULL;  // empty heap
 
-    Process min_proc = heap->process[0];
+    Process *min_proc = heap->process[0];
     heap->process[0] = heap->process[heap->size - 1];
     heap->size--;
     heapify_down(heap, 0, cmp);
@@ -78,7 +78,7 @@ Process heap_extract_min(MinHeap *heap, int (*cmp)(Process, Process)) {
 // peek only, don't remove
 Process* heap_peek(MinHeap *heap) {
     if (heap->size == 0) return NULL;
-    return &heap->process[0];
+    return heap->process[0];
 }
 
 

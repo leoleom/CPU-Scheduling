@@ -4,7 +4,7 @@
 #include "process.h"  
 
 typedef struct {
-    Process *process;  // array of Process structs
+    Process **process;  // array of Process structs
     int size;           // current number of elements
     int capacity;       // max allocated size
 } MinHeap;
@@ -13,8 +13,8 @@ typedef struct {
 MinHeap* create_heap(int capacity);
 
 // heap utils
-void heap_insert(MinHeap *heap, Process proc, int (*cmp)(Process, Process));
-Process heap_remove_min(MinHeap *heap, int (*cmp)(Process, Process));
+void heap_insert(MinHeap *heap, Process *proc, int (*cmp)(Process, Process));
+Process* heap_extract_min(MinHeap *heap, int (*cmp)(Process, Process));
 Process* heap_peek(MinHeap *heap);
 
 // freedom

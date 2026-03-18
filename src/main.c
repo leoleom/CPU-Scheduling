@@ -35,7 +35,7 @@ int main() {
         p->response_time = 0;
     }
 
-    schedule_fcfs(&state);
+    schedule_stcf(&state);
 
     calculate_metrics(state.processes, state.num_processes);
 
