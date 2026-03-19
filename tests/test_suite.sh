@@ -5,7 +5,7 @@ echo "Running CMSC 125 Lab 2 Test Suite..."
 
 # Test 1: Verify against lecture examples
 echo "Test 1: Lecture Quiz 4 Workload"
-./schedsim --algorithm=FCFS --input=tests/quiz4.txt > /tmp/fcfs.txt
+./schedsim --algorithm=FCFS --input=tests/quiz3.txt > /tmp/fcfs.txt
 if grep -q "Average.*750" /tmp/fcfs.txt; then
     echo "  FCFS: PASS"
 else

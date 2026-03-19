@@ -13,15 +13,15 @@ typedef struct {
 MinHeap* create_heap(int capacity);
 
 // heap utils
-void heap_insert(MinHeap *heap, Process *proc, int (*cmp)(Process, Process));
-Process* heap_extract_min(MinHeap *heap, int (*cmp)(Process, Process));
+void heap_insert(MinHeap *heap, Process *proc, int (*cmp)(Process*, Process*));
+Process* heap_extract_min(MinHeap *heap, int (*cmp)(Process*, Process*));
 Process* heap_peek(MinHeap *heap);
 
 // freedom
 void free_heap(MinHeap *heap);
 
 // compare functions
-int cmp_sjf(Process a, Process b);   // compare burst_time
-int cmp_stcf(Process a, Process b);  // compare remaining_time
+int cmp_sjf(Process *a, Process *b);   // compare burst_time
+int cmp_stcf(Process *a, Process *b);  // compare remaining_time
 
 #endif

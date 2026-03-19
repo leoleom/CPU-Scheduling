@@ -31,6 +31,12 @@ int main(int argc, char *argv[]) {
     if (strcmp(algorithm, "FCFS") == 0) {
         schedule_fcfs(&state);
     }
+    else if (strcmp(algorithm, "SJF") == 0) {
+        schedule_sjf(&state);
+    }
+    else if (strcmp(algorithm, "STCF") == 0) {
+        schedule_stcf(&state);
+    }
     else {
         printf("Unknown algorithm: %s\n", algorithm);
     }

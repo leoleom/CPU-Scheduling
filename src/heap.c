@@ -8,10 +8,10 @@ static void swap(Process **a, Process **b) {
     *b = temp;
 }
 
-static void heapify_up(MinHeap *heap, int index, int (*cmp)(Process, Process)) {
+static void heapify_up(MinHeap *heap, int index, int (*cmp)(Process*, Process*)) {
     while (index > 0) {
         int parent = (index - 1) / 2;
-        if (cmp(*heap->process[index], *heap->process[parent]) < 0) {
+        if (cmp(heap->process[index], heap->process[parent]) < 0) {
             swap(&heap->process[index], &heap->process[parent]);
             index = parent;
         } else {
@@ -20,7 +20,7 @@ static void heapify_up(MinHeap *heap, int index, int (*cmp)(Process, Process)) {
     }
 }
 
-static void heapify_down(MinHeap *heap, int index, int (*cmp)(Process, Process)) {
+static void heapify_down(MinHeap *heap, int index, int (*cmp)(Process*, Process*)) {
     int left, right, smallest;
 
     while (1) {
@@ -28,9 +28,9 @@ static void heapify_down(MinHeap *heap, int index, int (*cmp)(Process, Process))
         right = 2 * index + 2;
         smallest = index;
 
-        if (left < heap->size && cmp(*heap->process[left], *heap->process[smallest]) < 0)
+        if (left < heap->size && cmp(heap->process[left], heap->process[smallest]) < 0)
             smallest = left;
-        if (right < heap->size && cmp(*heap->process[right], *heap->process[smallest]) < 0)
+        if (right < heap->size && cmp(heap->process[right], heap->process[smallest]) < 0)
             smallest = right;
 
         if (smallest != index) {
@@ -45,14 +45,14 @@ static void heapify_down(MinHeap *heap, int index, int (*cmp)(Process, Process))
 // create a new heap
 MinHeap* create_heap(int capacity) {
     MinHeap *heap = malloc(sizeof(MinHeap));
-    heap->process = malloc(capacity * sizeof(Process));
+    heap->process = malloc(capacity * sizeof(Process*));
     heap->size = 0;
     heap->capacity = capacity;
     return heap;
 }
 
 // insert a process
-void heap_insert(MinHeap *heap, Process *proc, int (*cmp)(Process, Process)) {
+void heap_insert(MinHeap *heap, Process *proc, int (*cmp)(Process*, Process*)) {
     if (heap->size == heap->capacity) {
         heap->capacity *= 2;
         heap->process = realloc(heap->process, heap->capacity * sizeof(Process*));
@@ -64,7 +64,7 @@ void heap_insert(MinHeap *heap, Process *proc, int (*cmp)(Process, Process)) {
 }
 
 // extract min process
-Process* heap_extract_min(MinHeap *heap, int (*cmp)(Process, Process)) {
+Process* heap_extract_min(MinHeap *heap, int (*cmp)(Process *, Process*)) {
     if (heap->size == 0) return NULL;  // empty heap
 
     Process *min_proc = heap->process[0];
@@ -92,10 +92,10 @@ void free_heap(MinHeap *heap) {
 }
 
 // compare
-int cmp_sjf(Process a, Process b) {
-    return a.burst_time - b.burst_time;
+int cmp_sjf(Process *a, Process *b) {
+    return a->burst_time - b->burst_time;
 }
 
-int cmp_stcf(Process a, Process b) {
-    return a.remaining_time - b.remaining_time;
+int cmp_stcf(Process *a, Process *b) {
+    return a->remaining_time - b->remaining_time;
 }
