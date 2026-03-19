@@ -17,7 +17,7 @@ typedef struct {
 
 } Process;
 
-
+int load_processes(const char *filename, Process **processes);
 
 
 #endif
