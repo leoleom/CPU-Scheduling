@@ -5,29 +5,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int schedule_sjf(SchedulerState *state) {
+int schedule_sjf(SchedulerState *state, MinHeap *heap) {
 
     if (!state || state->num_processes == 0)
         return -1;
 
-    init_scheduler(state);
-
-    MinHeap *heap = create_heap(state->num_processes);
-
     int completed = 0;
     int time = 0;
     int gantt_index = 0;
+    
 
     while (completed < state->num_processes) {
 
         // ARRIVALS
-        for (int i = 0; i < state->num_processes; i++) {
-            Process *p = &state->processes[i];
-
-            if (p->arrival_time == time) {
-                heap_insert(heap, p, cmp_sjf);
-            }
-        }
+        handle_arrivals_sjf(state, heap, time);
 
         // pick next process if idle
         if (!state->current_process && heap->size > 0) {
