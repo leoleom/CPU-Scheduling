@@ -4,43 +4,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int schedule_fcfs(SchedulerState *state){
-    if (!state || state->num_processes == 0)
-    return -1;
+int schedule_fcfs(SchedulerState *state)
+{
 
-    // initialize the scheduler state
-    init_scheduler(state);
+    if (!state || state->num_processes == 0)
+        return -1;
 
     int completed = 0;
     int time = 0;
     int gantt_index = 0;
 
-    //  while (completed < state->num_processes) {
-    //     // enqueue any new arrivals at this time
-    //     for (int i = 0; i < state->num_processes; i++) {
-    //         Process *p = &state->processes[i];
-    //         if (p->arrival_time == time) {
-    //             enqueue(&state->ready_queue, p);
-    //         }
-    // }
+    gantt_init(10000);
 
     // loop until all processes are finished
-    while (completed < state->num_processes) {
+    while (completed < state->num_processes)
+    {
 
-        for (int i = 0; i < state->num_processes; i++) {
-            Process *p = &state->processes[i];
-            if (p->arrival_time == time) {
-                enqueue(&state->ready_queue, p);
-            }
-        }
+        handle_arrivals_queue(state, time);
 
         // pick next process if idle
-        if (!state->current_process && state->ready_queue.size > 0) {
-            Node* node = dequeue(&state->ready_queue);
+        if (!state->current_process && state->ready_queue.size > 0)
+        {
+            Node *node = dequeue(&state->ready_queue);
 
-            if (node) {
-                state->current_process = node->process;  // assign the process pointer
-                free(node);                              // freedom
+            if (node)
+            {
+                state->current_process = node->process; // assign the process pointer
+                free(node);                             // freedom
             }
 
             // record start time
@@ -48,7 +38,8 @@ int schedule_fcfs(SchedulerState *state){
                 state->current_process->start_time = time;
         }
         // Execute the current process
-        if (state->current_process) {
+        if (state->current_process)
+        {
 
             char pid = state->current_process->pid[0];
             gantt_add(gantt_index, pid);
@@ -57,7 +48,8 @@ int schedule_fcfs(SchedulerState *state){
             state->current_process->remaining_time--;
 
             // Check if process has finished
-            if (state->current_process->remaining_time == 0) {
+            if (state->current_process->remaining_time == 0)
+            {
                 state->current_process->finish_time = time + 1;
                 completed++;
                 state->current_process = NULL;
@@ -66,7 +58,7 @@ int schedule_fcfs(SchedulerState *state){
 
         time++;
     }
-    
+
     gantt_print(time);
     return 0;
 }

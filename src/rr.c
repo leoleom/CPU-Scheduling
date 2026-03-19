@@ -2,43 +2,66 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Round Robin Scheduling (Preemptive)
-int schedule_rr(SchedulerState *state, int quantum) {
-    static int quantum_counter = 0; // track how much time current process has used in this quantum
+int schedule_rr(SchedulerState *state, int quantum)
+{
 
-    // Pick next process if CPU is idle
-    if (!state->current_process && state->ready_queue.size > 0) {
-        Node *node = dequeue(&state->ready_queue);
-        if (node) {
-            state->current_process = node->process;
-            free(node);
+    if (!state || state->num_processes == 0)
+        return -1;
+
+    int completed = 0;
+    int time = 0;
+    int quantum_counter = 0;
+
+    gantt_init(10000);
+
+    while (completed < state->num_processes)
+    {
+
+        handle_arrivals_queue(state, time);
+
+        // pick next process if CPU idle
+        if (!state->current_process && state->ready_queue.size > 0)
+        {
+            state->current_process = dequeue(&state->ready_queue);
 
             // record start time if first execution
             if (state->current_process->start_time == -1)
-                state->current_process->start_time = state->current_time;
+                state->current_process->start_time = time;
 
-            quantum_counter = 0; // reset quantum counter for new process
-        }
-    }
-
-    // Execute current process
-    if (state->current_process) {
-        state->current_process->remaining_time--;
-        quantum_counter++;
-
-        // Check if process finished
-        if (state->current_process->remaining_time == 0) {
-            state->current_process->finish_time = state->current_time + 1;
-            state->current_process = NULL;
             quantum_counter = 0; // reset quantum counter
         }
-        // Quantum expired? Preempt and enqueue at the end
-        else if (quantum_counter >= quantum) {
-            enqueue(&state->ready_queue, state->current_process);
-            state->current_process = NULL;
-            quantum_counter = 0;
+
+        // execute current process
+        if (state->current_process)
+        {
+            // Add to Gantt chart
+            gantt_add(time, state->current_process->pid[0]);
+
+            // run for 1 time unit
+            state->current_process->remaining_time--;
+            quantum_counter++;
+
+            // check if finished
+            if (state->current_process->remaining_time == 0)
+            {
+                state->current_process->finish_time = time + 1;
+                state->current_process = NULL;
+                quantum_counter = 0;
+                completed++;
+            }
+            // if quantum expired, preempt and enqueue at the end
+            else if (quantum_counter >= quantum)
+            {
+                enqueue(&state->ready_queue, state->current_process);
+                state->current_process = NULL;
+                quantum_counter = 0;
+            }
         }
+
+        time++;
+        state->current_time = time;
     }
 
+    gantt_print(time);
     return 0;
 }
