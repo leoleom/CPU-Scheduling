@@ -60,6 +60,7 @@ void print_process_metrics(Process p[], int n)
                p[i].response_time);
         puts("+---------+-------+-------+-------+-------+-------+-------+");
     }
+    printf("| Average |       |       |       | %3.1f | %3.1f | %3.1f |", (float)calculate_average_turnaround(p, n), (float)calculate_average_waiting(p, n), (float)calculate_average_response(p, n));
 }
 
 void print_metrics_calculation(Process p[], int n)
