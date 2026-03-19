@@ -6,6 +6,7 @@ SRC_DIR = src
 # sources and objects
 SRCS = $(SRC_DIR)/main.c \
        $(SRC_DIR)/process.c \
+       $(SRC_DIR)/heap.c \
        $(SRC_DIR)/fcfs.c \
        $(SRC_DIR)/sjf.c \
        $(SRC_DIR)/stcf.c \

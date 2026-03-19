@@ -50,7 +50,7 @@ void print_process_metrics(Process p[], int n)
 
     for(i = 0; i < n; i++)
     {
-        printf("| %7s |  %2d  |  %2d  |  %2d  |  %2d  |  %2d  |  %2d  |\n",
+        printf("| %7s |  %3d  |  %3d  |  %3d  |  %3d  |  %3d  |  %3d  |\n",
                p[i].pid,
                p[i].arrival_time,
                p[i].burst_time,
