@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
-void init_scheduler(SchedulerState *state) {
+void init_scheduler(SchedulerState *state)
+{
     state->ready_queue.head = NULL;
     state->ready_queue.tail = NULL;
     state->ready_queue.size = 0;
@@ -11,23 +11,27 @@ void init_scheduler(SchedulerState *state) {
     state->gantt_chart = NULL;
     state->gantt_size = 0;
 
-    for (int i = 0; i < state->num_processes; i++) {
+    for (int i = 0; i < state->num_processes; i++)
+    {
         state->processes[i].remaining_time = state->processes[i].burst_time;
         state->processes[i].start_time = -1;
         state->processes[i].finish_time = -1;
     }
 }
 
-
 /* used for fcfs and rr */
-void enqueue(Queue *queue, Process *proc) {
-    Node *new_node = (Node*) malloc(sizeof(Node));
+void enqueue(Queue *queue, Process *proc)
+{
+    Node *new_node = (Node *)malloc(sizeof(Node));
     new_node->process = proc;
     new_node->next = NULL;
 
-    if (queue->tail == NULL) {  // empty queue
+    if (queue->tail == NULL)
+    { // empty queue
         queue->head = queue->tail = new_node;
-    } else {
+    }
+    else
+    {
         queue->tail->next = new_node;
         queue->tail = new_node;
     }
@@ -35,18 +39,69 @@ void enqueue(Queue *queue, Process *proc) {
     queue->size++;
 }
 
-Node* dequeue(Queue *queue) {
-    if (queue->head == NULL)        //check if empty
+Node *dequeue(Queue *queue)
+{
+    if (queue->head == NULL) // check if empty
         return NULL;
 
     Node *temp = queue->head;
-    queue->head = queue->head->next;   //move the head to the next process
+    queue->head = queue->head->next; // move the head to the next process
 
-    if (queue->head == NULL)           //if queue is now empty
+    if (queue->head == NULL) // if queue is now empty
         queue->tail = NULL;
 
-    temp->next = NULL;                //delete the reference
+    temp->next = NULL; // delete the reference
     queue->size--;
 
     return temp;
+}
+
+//HANDLE ARRIVALS 
+void handle_arrivals_queue(SchedulerState *state, int time) {
+    for (int i = 0; i < state->num_processes; i++) {
+        Process *p = &state->processes[i];
+
+        if (p->arrival_time == time) {
+            enqueue(&state->ready_queue, p);
+        }
+    }
+}
+
+
+void handle_arrivals_stcf(SchedulerState *state, MinHeap *heap, int time)
+{
+    for (int i = 0; i < state->num_processes; i++)
+    {
+        Process *p = &state->processes[i];
+
+        if (p->arrival_time == time)
+        {
+            heap_insert(heap, p, cmp_stcf);
+        }
+    }
+}
+
+void handle_arrivals_sjf(SchedulerState *state, MinHeap *heap, int time)
+{
+    for (int i = 0; i < state->num_processes; i++)
+    {
+        Process *p = &state->processes[i];
+
+        if (p->arrival_time == time)
+        {
+            heap_insert(heap, p, cmp_sjf); // uses burst_time
+        }
+    }
+}
+
+void handle_arrivals_mlfq(SchedulerState *state, MLFQScheduler *sched, int time) {
+    for (int i = 0; i < state->num_processes; i++) {
+        Process *p = &state->processes[i];
+
+        if (p->arrival_time == time) {
+            p->priority = 0;
+            p->time_in_queue = 0;
+            enqueue(&sched->queues[0], p);
+        }
+    }
 }
