@@ -1,5 +1,6 @@
 #include "scheduler.h"
 #include "metrics.h"
+#include "gantt.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -12,6 +13,7 @@ int schedule_fcfs(SchedulerState *state){
 
     int completed = 0;
     int time = 0;
+    int gantt_index = 0;
 
     //  while (completed < state->num_processes) {
     //     // enqueue any new arrivals at this time
@@ -47,6 +49,11 @@ int schedule_fcfs(SchedulerState *state){
         }
         // Execute the current process
         if (state->current_process) {
+
+            char pid = state->current_process->pid[0];
+            gantt_add(gantt_index, pid);
+            gantt_index++;
+
             state->current_process->remaining_time--;
 
             // Check if process has finished
@@ -60,6 +67,6 @@ int schedule_fcfs(SchedulerState *state){
         time++;
     }
     
-   
+    gantt_print(time);
     return 0;
 }
