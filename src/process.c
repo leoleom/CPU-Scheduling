@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "process.h"
 
 int load_processes(const char *filename, Process **p) {

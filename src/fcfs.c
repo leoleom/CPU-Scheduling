@@ -1,4 +1,5 @@
 #include "scheduler.h"
+#include "metrics.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -23,6 +24,13 @@ int schedule_fcfs(SchedulerState *state){
 
     // loop until all processes are finished
     while (completed < state->num_processes) {
+
+        for (int i = 0; i < state->num_processes; i++) {
+            Process *p = &state->processes[i];
+            if (p->arrival_time == time) {
+                enqueue(&state->ready_queue, p);
+            }
+        }
 
         // pick next process if idle
         if (!state->current_process && state->ready_queue.size > 0) {
@@ -51,6 +59,7 @@ int schedule_fcfs(SchedulerState *state){
 
         time++;
     }
-
+    
+   
     return 0;
 }

@@ -1,48 +1,46 @@
-#include "scheduler.h" 
-#include "metrics.h"
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
+#include "scheduler.h"
+#include "metrics.h"
+#include "process.h"
 
-int main() {
-    SchedulerState state;
+int main(int argc, char *argv[]) {
 
-    printf("Enter number of processes: ");
-    scanf("%d", &state.num_processes);
+    char *algorithm = NULL;
+    char *input = NULL;
 
-    state.processes = malloc(sizeof(Process) * state.num_processes);
+    for (int i = 1; i < argc; i++) {
 
-    printf("\nEnter Arrival Time and Burst Time:\n");
+        if (strcmp(argv[i], "--algorithm") == 0)
+            algorithm = argv[++i];
 
-    for (int i = 0; i < state.num_processes; i++) {
-        Process *p = &state.processes[i];
-
-        p->pid[0] = 'A' + i;
-        p->pid[1] = '\0'; 
-        printf("Process %s\n", p->pid);
-
-        printf("Arrival Time: ");
-        scanf("%d", &p->arrival_time);
-
-        printf("Burst Time: ");
-        scanf("%d", &p->burst_time);
-
-        p->remaining_time = p->burst_time;
-
-        p->start_time = -1;
-        p->finish_time = 0;
-        p->turnaround_time = 0;
-        p->waiting_time = 0;
-        p->response_time = 0;
+        else if (strcmp(argv[i], "--input") == 0)
+            input = argv[++i];
     }
 
-    schedule_stcf(&state);
+    if (!algorithm || !input) {
+        printf("Usage: ./main --algorithm FCFS --input file.txt\n");
+        return 1;
+    }
+
+    SchedulerState state;
+
+    state.num_processes = load_processes(input, &state.processes);
+
+    if (strcmp(algorithm, "FCFS") == 0) {
+        schedule_fcfs(&state);
+    }
+    else {
+        printf("Unknown algorithm: %s\n", algorithm);
+    }
 
     calculate_metrics(state.processes, state.num_processes);
 
-    printf("\n==== METRICS ====\n\n");
+    printf("=== METRICS ===\n");
     print_process_metrics(state.processes, state.num_processes);
 
-    printf("\n=== PER PROCESS CALCULATION ===\n\n");
+    printf("\n=== DETAILED CALCULATION ===\n");
     print_metrics_calculation(state.processes, state.num_processes);
 
     free(state.processes);
