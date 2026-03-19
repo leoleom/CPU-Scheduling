@@ -18,6 +18,7 @@ void init_scheduler(SchedulerState *state) {
     }
 }
 
+
 /* used for fcfs and rr */
 void enqueue(Queue *queue, Process *proc) {
     Node *new_node = (Node*) malloc(sizeof(Node));
