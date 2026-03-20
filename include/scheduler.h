@@ -71,7 +71,7 @@ void handle_arrivals_sjf(SchedulerState *state, MinHeap *heap, int current_time)
 // stcf scheduler
 void handle_arrivals_stcf(SchedulerState *state, MinHeap *heap, int current_time);
 // mlfq scheduler
-void handle_arrivals_mlfq(SchedulerState *state, MLFQQueue *queues, int current_time);
+void handle_arrivals_mlfq(SchedulerState *state, MLFQScheduler *sched, int current_time);
 
 // Return 0 on success, -1 on error (command line etiquette)
 int schedule_fcfs(SchedulerState *state);

@@ -56,6 +56,33 @@ Node *dequeue(Queue *queue)
     return temp;
 }
 
+
+//MLFQ QUEUE
+void enqueue_mlfq(MLFQQueue *q, Process *p) {
+    Node *node = malloc(sizeof(Node));
+    node->process = p;
+    node->next = NULL;
+
+    if (!q->head) {
+        q->head = q->tail = node;
+    } else {
+        q->tail->next = node;
+        q->tail = node;
+    }
+    q->size++;
+}
+
+Process* dequeue_mlfq(MLFQQueue *q) {
+    if (!q->head) return NULL;
+    Node *node = q->head;
+    Process *p = node->process;
+    q->head = node->next;
+    if (!q->head) q->tail = NULL;
+    free(node);
+    q->size--;
+    return p;
+}
+
 //HANDLE ARRIVALS 
 void handle_arrivals_queue(SchedulerState *state, int time) {
     for (int i = 0; i < state->num_processes; i++) {
