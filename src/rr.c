@@ -1,4 +1,5 @@
 #include "scheduler.h"
+#include "gantt.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -11,6 +12,7 @@ int schedule_rr(SchedulerState *state, int quantum)
     int completed = 0;
     int time = 0;
     int quantum_counter = 0;
+    int gantt_index = 0;
 
     gantt_init(10000);
 
@@ -22,7 +24,10 @@ int schedule_rr(SchedulerState *state, int quantum)
         // pick next process if CPU idle
         if (!state->current_process && state->ready_queue.size > 0)
         {
-            state->current_process = dequeue(&state->ready_queue);
+            // Fix: Dequeue returns Node *, so extract Process * from it and free the node
+            Node *node = dequeue(&state->ready_queue);
+            state->current_process = node->process;
+            free(node);
 
             // record start time if first execution
             if (state->current_process->start_time == -1)
@@ -35,7 +40,9 @@ int schedule_rr(SchedulerState *state, int quantum)
         if (state->current_process)
         {
             // Add to Gantt chart
-            gantt_add(time, state->current_process->pid[0]);
+            char pid = state->current_process->pid[0];
+            gantt_add(gantt_index, pid);
+            gantt_index++;
 
             // run for 1 time unit
             state->current_process->remaining_time--;

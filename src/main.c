@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 
     char *algorithm = NULL;
     char *input = NULL;
-    int quantum = 3;
+    int quantum = 20;
 
     for (int i = 1; i < argc; i++)
     {

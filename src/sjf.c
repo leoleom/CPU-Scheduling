@@ -50,6 +50,5 @@ int schedule_sjf(SchedulerState *state, MinHeap *heap) {
     }
 
     gantt_print(time);
-    free_heap(heap);
     return 0;
 }

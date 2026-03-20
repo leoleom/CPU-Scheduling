@@ -94,14 +94,14 @@ void handle_arrivals_sjf(SchedulerState *state, MinHeap *heap, int time)
     }
 }
 
-void handle_arrivals_mlfq(SchedulerState *state, MLFQScheduler *sched, int time) {
-    for (int i = 0; i < state->num_processes; i++) {
-        Process *p = &state->processes[i];
+// void handle_arrivals_mlfq(SchedulerState *state, MLFQScheduler *sched, int time) {
+//     for (int i = 0; i < state->num_processes; i++) {
+//         Process *p = &state->processes[i];
 
-        if (p->arrival_time == time) {
-            p->priority = 0;
-            p->time_in_queue = 0;
-            enqueue(&sched->queues[0], p);
-        }
-    }
-}
+//         if (p->arrival_time == time) {
+//             p->priority = 0;
+//             p->time_in_queue = 0;
+//             enqueue(&sched->queues[0], p);
+//         }
+//     }
+// }
