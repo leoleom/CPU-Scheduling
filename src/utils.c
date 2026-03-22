@@ -56,44 +56,55 @@ Node *dequeue(Queue *queue)
     return temp;
 }
 
-
-//MLFQ QUEUE
-void enqueue_mlfq(MLFQQueue *q, Process *p) {
+// MLFQ QUEUE
+void enqueue_mlfq(MLFQQueue *q, Process *p)
+{
     Node *node = malloc(sizeof(Node));
     node->process = p;
     node->next = NULL;
 
-    if (!q->head) {
+    if (!q->head)
+    {
         q->head = q->tail = node;
-    } else {
+    }
+    else
+    {
         q->tail->next = node;
         q->tail = node;
     }
     q->size++;
 }
 
-Process* dequeue_mlfq(MLFQQueue *q) {
-    if (!q->head) return NULL;
+Process *dequeue_mlfq(MLFQQueue *q)
+{
+    if (!q->head)
+        return NULL;
     Node *node = q->head;
     Process *p = node->process;
     q->head = node->next;
-    if (!q->head) q->tail = NULL;
+    if (!q->head)
+        q->tail = NULL;
     free(node);
     q->size--;
     return p;
 }
 
-//HANDLE ARRIVALS 
-void handle_arrivals_queue(SchedulerState *state, int time) {
-    for (int i = 0; i < state->num_processes; i++) {
+// HANDLE ARRIVALS
+void handle_arrivals_queue(SchedulerState *state, int time)
+{
+    for (int i = 0; i < state->num_processes; i++)
+    {
         Process *p = &state->processes[i];
 
-        if (p->arrival_time == time) {
+        if (p->arrival_time == time)
+        {
             enqueue(&state->ready_queue, p);
         }
+
+        if (p->start_time == -1)
+            p->start_time = time;
     }
 }
-
 
 void handle_arrivals_stcf(SchedulerState *state, MinHeap *heap, int time)
 {
@@ -104,6 +115,20 @@ void handle_arrivals_stcf(SchedulerState *state, MinHeap *heap, int time)
         if (p->arrival_time == time)
         {
             heap_insert(heap, p, cmp_stcf);
+        }
+
+        if (p->start_time == -1)
+            p->start_time = time;
+    }
+
+    // preempt if needed
+    if (state->current_process != NULL && heap->size > 0)
+    {
+        Process *shortest = heap_peek(heap);
+        if (shortest->remaining_time < state->current_process->remaining_time)
+        {
+            heap_insert(heap, state->current_process, cmp_stcf);
+            state->current_process = heap_extract_min(heap, cmp_stcf);
         }
     }
 }
@@ -118,17 +143,34 @@ void handle_arrivals_sjf(SchedulerState *state, MinHeap *heap, int time)
         {
             heap_insert(heap, p, cmp_sjf); // uses burst_time
         }
+        
+        if (p->start_time == -1)
+            p->start_time = time;
     }
 }
 
-// void handle_arrivals_mlfq(SchedulerState *state, MLFQScheduler *sched, int time) {
-//     for (int i = 0; i < state->num_processes; i++) {
-//         Process *p = &state->processes[i];
+void handle_arrivals_mlfq(SchedulerState *state, MLFQScheduler *sched, int time) {
+    for (int i = 0; i < state->num_processes; i++) {
+        Process *p = &state->processes[i];
 
-//         if (p->arrival_time == time) {
-//             p->priority = 0;
-//             p->time_in_queue = 0;
-//             enqueue(&sched->queues[0], p);
-//         }
-//     }
-// }
+        if (p->arrival_time == time) {
+            p->priority = 0;
+            p->time_in_queue = 0;
+            enqueue(&sched->queues[0], p);
+            
+        }
+
+        if (p->start_time == -1)
+            p->start_time = time;
+    }
+
+    // boost priorities if needed
+    mlfq_priority_boost(sched, time);
+
+    // preempt if higher-priority process exists
+    mlfq_check_preemption(state, sched);
+
+    // pick next process to run
+    mlfq_select_next_process(state, sched);
+}
+
