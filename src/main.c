@@ -9,7 +9,8 @@
 int main(int argc, char *argv[])
 {
 
-    char *algorithm = NULL;
+    char *algorithm_str = NULL;
+    char algorithm;
     char *input = NULL;
     int quantum = 20;
 
@@ -17,7 +18,7 @@ int main(int argc, char *argv[])
     {
         if (strncmp(argv[i], "--algorithm=", 12) == 0)
         {
-            algorithm = argv[i] + 12;
+            algorithm_str = argv[i] + 12;
         }
         else if (strncmp(argv[i], "--input=", 8) == 0)
         {
@@ -29,9 +30,9 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (!algorithm || !input)
+    if (!algorithm_str || !input)
     {
-        printf("Usage: ./main --algorithm FCFS --input file.txt\n");
+        printf("Usage: ./main --algorithm=FCFS --input=file.txt\n");
         return 1;
     }
 
@@ -41,32 +42,29 @@ int main(int argc, char *argv[])
 
     init_scheduler(&state);
 
-    if (strcmp(algorithm, "FCFS") == 0)
+    if (strcmp(algorithm_str, "FCFS") == 0)
     {
-        schedule_fcfs(&state);
+        algorithm = FCFS;
     }
-    else if (strcmp(algorithm, "SJF") == 0)
+    else if (strcmp(algorithm_str, "SJF") == 0)
     {
-        MinHeap *heap = create_heap(state.num_processes);
-        schedule_sjf(&state, heap);
-        free_heap(heap);
+        algorithm = SJF;
     }
-    else if (strcmp(algorithm, "STCF") == 0)
+    else if (strcmp(algorithm_str, "STCF") == 0)
     {
-        MinHeap *heap = create_heap(state.num_processes);
-        schedule_stcf(&state, heap);
-        free_heap(heap);
+        algorithm = STCF;
     }
-    else if (strcmp(algorithm, "RR") == 0)
+    else if (strcmp(algorithm_str, "RR") == 0)
     {
-        schedule_rr(&state, quantum);
+        algorithm = RR;
+        state.rr_quantum = quantum;
     }
     else
     {
         printf("Unknown algorithm: %s\n", algorithm);
     }
 
-    calculate_metrics(state.processes, state.num_processes);
+    simulate_scheduler(&state, algorithm);
 
     printf("=== METRICS ===\n");
     print_process_metrics(state.processes, state.num_processes);
