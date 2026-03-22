@@ -5,26 +5,122 @@ void simulate_scheduler(SchedulerState *state,
                         SchedulingAlgorithm algorithm)
 {
     Event *event_queue = initialize_events(state);
+    state->current_process = NULL;
 
     while (event_queue != NULL)
     {
         Event *current = pop_event(&event_queue);
         state->current_time = current->time;
 
-        switch (current->type)
+        // Handle event
+        if (current)
         {
-        case EVENT_ARRIVAL:
-            handle_arrival(state, current->process);
-            break;
-        case EVENT_COMPLETION:
-            handle_completion(state, current->process);
-            break;
-            // ... handle other events
+            switch (current->type)
+            {
+            case EVENT_ARRIVAL:
+                switch (algorithm)
+                {
+                case FCFS:
+                case RR:
+                    handle_arrivals_queue(state, state->current_time);
+                    break;
+                case SJF:
+                    handle_arrivals_sjf(state, &state->heap, state->current_time);
+                    break;
+                case STCF:
+                    handle_arrivals_stcf(state, &state->heap, state->current_time);
+                    break;
+                case MLFQ:
+                    handle_arrivals_mlfq(state, &state->mlfq, state->current_time);
+                    break;
+                }
+                break;
+            case EVENT_COMPLETION:
+                handle_completion(state, current->process);
+                state->current_process = NULL; // pick next process
+                break;
+            case EVENT_QUANTUM_EXPIRE:
+                handle_quantum_expire(state, current->process);
+                state->current_process = NULL; // pick next process
+                break;
+
+            case EVENT_PRIORITY_BOOST:
+                handle_priority_boost(state);
+                break;
+            }
+
+            free(current);
         }
 
-        free(current);
+        if (state->current_process == NULL)
+        {
+            switch (algorithm)
+            {
+            case FCFS:
+                schedule_fcfs(&state);
+                break;
+            case SJF:
+                schedule_sjf(&state, state->heap);
+                break;
+            case STCF:
+                schedule_stcf(&state, state->heap);
+                break;
+            case RR:
+                schedule_rr(&state, state->rr_quantum);
+                break;
+            case MLFQ:
+                schedule_mlfq(&state, &state->mlfq);
+                break;
+            }
+        }
+
+        // Priority boost check (MLFQ only)
+        if (algorithm == MLFQ && state->current_time - state->mlfq.last_boost >= state->mlfq.boost_period)
+        {
+            schedule_event(state, NULL, EVENT_PRIORITY_BOOST, state->current_time);
+        }
     }
 
-    calculate_metrics(state);
+    calculate_metrics(state->processes, state->num_processes);
     print_results(state);
+}
+
+void schedule_event(SchedulerState *state, Process *p, EventType type, int event_time)
+{
+    Event *event = malloc(sizeof(Event));
+    event->time = event_time;
+    event->type = type;
+    event->process = p;
+    event->next = NULL;
+
+    // list is empty, new event becomes head
+    if (state->event_queue == NULL) {
+        state->event_queue = event;
+        return;
+    }
+
+    // check if new event should go at the front
+    if (event->time < state->event_queue->time) {
+        event->next = state->event_queue;
+        state->event_queue = event;
+        return;
+    }
+
+    Event *current = state->event_queue;
+    while (current->next != NULL && current->next->time <= event->time) {
+        current = current->next;
+    }
+
+    // insert new event after current
+    event->next = current->next;
+    current->next = event;
+}
+
+void handle_quantum_expire(SchedulerState *state, Process *p)
+{
+    // reduce remaining time by quantum
+    p->remaining_time -= state->rr_quantum;
+
+    // put process back in queue
+    enqueue(&state->ready_queue, p);
 }
