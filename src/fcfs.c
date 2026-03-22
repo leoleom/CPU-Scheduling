@@ -10,55 +10,30 @@ int schedule_fcfs(SchedulerState *state)
     if (!state || state->num_processes == 0)
         return -1;
 
-    int completed = 0;
-    int time = 0;
-    int gantt_index = 0;
+     if (state->current_process != NULL)
+        return 0;
 
-    gantt_init(10000);
+    // do nothing if queue empty
+    if (state->ready_queue.size == 0)
+        return 0;
 
-    // loop until all processes are finished
-    while (completed < state->num_processes)
-    {
+    // pick next process
+    Node *node = dequeue(&state->ready_queue);
+    if (!node)
+        return -1;
+        
+    Process *p = node->process;
+    free(node);
 
-        handle_arrivals_queue(state, time);
+    state->current_process = p;
 
-        // pick next process if idle
-        if (!state->current_process && state->ready_queue.size > 0)
-        {
-            Node *node = dequeue(&state->ready_queue);
+    // response time tracking
+    if (p->start_time == -1)
+        p->start_time = state->current_time;
 
-            if (node)
-            {
-                state->current_process = node->process; // assign the process pointer
-                free(node);                             // freedom
-            }
+    //  schedule completion instead of simulating time
+    int finish_time = state->current_time + p->remaining_time;
+    schedule_event(state, p, EVENT_COMPLETION, finish_time);
 
-            // record start time
-            if (state->current_process->start_time == -1)
-                state->current_process->start_time = time;
-        }
-        // Execute the current process
-        if (state->current_process)
-        {
-
-            char pid = state->current_process->pid[0];
-            gantt_add(gantt_index, pid);
-            gantt_index++;
-
-            state->current_process->remaining_time--;
-
-            // Check if process has finished
-            if (state->current_process->remaining_time == 0)
-            {
-                state->current_process->finish_time = time + 1;
-                completed++;
-                state->current_process = NULL;
-            }
-        }
-
-        time++;
-    }
-
-    gantt_print(time);
     return 0;
 }
