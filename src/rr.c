@@ -9,66 +9,42 @@ int schedule_rr(SchedulerState *state, int quantum)
     if (!state || state->num_processes == 0)
         return -1;
 
-    int completed = 0;
-    int time = 0;
-    int quantum_counter = 0;
-    int gantt_index = 0;
+    if (state->current_process != NULL)
+        return 0;
 
-    gantt_init(10000);
+    // do nothing if queue empty
+    if (state->ready_queue.size == 0)
+        return 0;
 
-    while (completed < state->num_processes)
+    Node *node = dequeue(&state->ready_queue);
+    if (!node)
+        return -1;
+
+    Process *p = node->process;
+    free(node);
+
+    state->current_process = p;
+
+    // Record first execution (response time)
+    if (p->start_time == -1)
+        p->start_time = state->current_time;
+
+    // Determine how long it will run
+    int run_time = (p->remaining_time < quantum) ? p->remaining_time : quantum;
+
+    int event_time = state->current_time + run_time;
+
+    // Decide what event to schedule
+    if (p->remaining_time <= quantum)
     {
-
-        handle_arrivals_queue(state, time);
-
-        // pick next process if CPU idle
-        if (!state->current_process && state->ready_queue.size > 0)
-        {
-            // Fix: Dequeue returns Node *, so extract Process * from it and free the node
-            Node *node = dequeue(&state->ready_queue);
-            state->current_process = node->process;
-            free(node);
-
-            // record start time if first execution
-            if (state->current_process->start_time == -1)
-                state->current_process->start_time = time;
-
-            quantum_counter = 0; // reset quantum counter
-        }
-
-        // execute current process
-        if (state->current_process)
-        {
-            // Add to Gantt chart
-            char pid = state->current_process->pid[0];
-            gantt_add(gantt_index, pid);
-            gantt_index++;
-
-            // run for 1 time unit
-            state->current_process->remaining_time--;
-            quantum_counter++;
-
-            // check if finished
-            if (state->current_process->remaining_time == 0)
-            {
-                state->current_process->finish_time = time + 1;
-                state->current_process = NULL;
-                quantum_counter = 0;
-                completed++;
-            }
-            // if quantum expired, preempt and enqueue at the end
-            else if (quantum_counter >= quantum)
-            {
-                enqueue(&state->ready_queue, state->current_process);
-                state->current_process = NULL;
-                quantum_counter = 0;
-            }
-        }
-
-        time++;
-        state->current_time = time;
+        // Process will finish
+        schedule_event(state, p, EVENT_COMPLETION, event_time);
+    }
+    else
+    {
+        // Quantum will expire
+        schedule_event(state, p, EVENT_QUANTUM_EXPIRE, event_time);
     }
 
-    gantt_print(time);
     return 0;
 }
