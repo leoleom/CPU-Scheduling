@@ -31,6 +31,13 @@ typedef struct
     char *gantt_chart;
     int gantt_size;
 
+    int rr_quantum;
+
+    MinHeap *heap;
+
+    MLFQScheduler mlfq;
+
+    Event *event_queue;
     // store metrics
 } SchedulerState;
 
