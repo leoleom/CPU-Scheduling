@@ -9,68 +9,25 @@ int schedule_stcf(SchedulerState *state, MinHeap *heap)
 
     if (!state || state->num_processes == 0)
         return -1;
+    
+    if (state->current_process != NULL)
+        return 0;
 
-    int completed = 0;
-    int time = 0;
-    int gantt_index = 0;
+    // do nothing if heap is empty
+    if (heap->size == 0)
+        return 0;
 
-    while (completed < state->num_processes)
-    {
+    // pick shortest remaining process
+    Process *shortest = heap_extract_min(heap, cmp_stcf);
+    state->current_process = shortest;
 
-        handle_arrivals_stcf(state, heap, time);
+    // record start time
+    if (shortest->start_time == -1)
+        shortest->start_time = state->current_time;
 
-        // preempt check
-        if (heap->size > 0)
-        {
+    // schedule completion event
+    int finish_time = state->current_time + shortest->remaining_time;
+    schedule_event(state, shortest, EVENT_COMPLETION, finish_time);
 
-            Process *shortest = heap_peek(heap);
-
-            if (!state->current_process ||
-                shortest->remaining_time <
-                    state->current_process->remaining_time)
-            {
-
-                // put current back
-                if (state->current_process)
-                {
-                    heap_insert(heap, state->current_process, cmp_stcf);
-                }
-
-                // switch to shortest
-                state->current_process =
-                    heap_extract_min(heap, cmp_stcf);
-
-                if (state->current_process->start_time == -1)
-                    state->current_process->start_time = time;
-            }
-        }
-
-        // execute
-        if (state->current_process)
-        {
-
-            char pid = state->current_process->pid[0];
-            gantt_add(gantt_index, pid);
-            gantt_index++;
-
-            state->current_process->remaining_time--;
-
-            if (state->current_process->remaining_time == 0)
-            {
-                state->current_process->finish_time = time + 1;
-                completed++;
-                state->current_process = NULL;
-            }
-        }
-        else
-        {
-            // CPU idle
-            gantt_add(gantt_index++, '-');
-        }
-
-        time++;
-    }
-
-    gantt_print(time);
     return 0;
 }
