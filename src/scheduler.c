@@ -41,6 +41,10 @@ void simulate_scheduler(SchedulerState *state,
                 break;
             case EVENT_QUANTUM_EXPIRE:
                 handle_quantum_expire(state, current->process);
+                if (algorithm == MLFQ)
+                {
+                    mlfq_adjust_priority(&state->mlfq, current->process);
+                }
                 state->current_process = NULL; // pick next process
                 break;
 
@@ -94,20 +98,23 @@ void schedule_event(SchedulerState *state, Process *p, EventType type, int event
     event->next = NULL;
 
     // list is empty, new event becomes head
-    if (state->event_queue == NULL) {
+    if (state->event_queue == NULL)
+    {
         state->event_queue = event;
         return;
     }
 
     // check if new event should go at the front
-    if (event->time < state->event_queue->time) {
+    if (event->time < state->event_queue->time)
+    {
         event->next = state->event_queue;
         state->event_queue = event;
         return;
     }
 
     Event *current = state->event_queue;
-    while (current->next != NULL && current->next->time <= event->time) {
+    while (current->next != NULL && current->next->time <= event->time)
+    {
         current = current->next;
     }
 
@@ -127,7 +134,7 @@ void handle_quantum_expire(SchedulerState *state, Process *p)
 
 void handle_priority_boost(SchedulerState *state)
 {
-    // perform the priority boost 
+    // perform the priority boost
     mlfq_priority_boost(&state->mlfq, state->current_time);
 
     // preempt current process if a higher-priority process exists
