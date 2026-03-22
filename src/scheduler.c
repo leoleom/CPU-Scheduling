@@ -74,7 +74,7 @@ void simulate_scheduler(SchedulerState *state,
             }
         }
 
-        // Priority boost check (MLFQ only)
+        // priority boost check (MLFQ only)
         if (algorithm == MLFQ && state->current_time - state->mlfq.last_boost >= state->mlfq.boost_period)
         {
             schedule_event(state, NULL, EVENT_PRIORITY_BOOST, state->current_time);
@@ -123,4 +123,20 @@ void handle_quantum_expire(SchedulerState *state, Process *p)
 
     // put process back in queue
     enqueue(&state->ready_queue, p);
+}
+
+void handle_priority_boost(SchedulerState *state)
+{
+    // perform the priority boost 
+    mlfq_priority_boost(&state->mlfq, state->current_time);
+
+    // preempt current process if a higher-priority process exists
+    mlfq_check_preemption(state, &state->mlfq);
+
+    // pick next process to run if CPU is idle
+    mlfq_select_next_process(state, &state->mlfq);
+
+    // schedule the next priority boost event
+    schedule_event(state, NULL, EVENT_PRIORITY_BOOST,
+                   state->current_time + state->mlfq.boost_period);
 }
