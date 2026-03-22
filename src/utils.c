@@ -19,6 +19,22 @@ void init_scheduler(SchedulerState *state)
     }
 }
 
+void init_mlfq(MLFQScheduler *sched, MLFQConfig *config) {
+    sched->num_queues = config->num_queues;
+    sched->boost_period = config->boost_period;
+    sched->last_boost = 0;
+
+    sched->queues = malloc(sizeof(MLFQQueue) * config->num_queues);
+
+    for (int i = 0; i < config->num_queues; i++) {
+        sched->queues[i].level = i;
+        sched->queues[i].time_quantum = config->time_quantum[i];
+        sched->queues[i].allotment = config->allotment[i];
+        sched->queues[i].head = sched->queues[i].tail = NULL;
+        sched->queues[i].size = 0;
+    }
+}
+
 /* used for fcfs and rr */
 void enqueue(Queue *queue, Process *proc)
 {
