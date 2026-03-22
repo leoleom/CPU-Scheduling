@@ -59,6 +59,23 @@ int main(int argc, char *argv[])
         algorithm = RR;
         state.rr_quantum = quantum;
     }
+    else if(strcmp(algorithm_str, "MLFQ") == 0)
+    {
+        algorithm = MLFQ;
+
+        // set the configurations
+        MLFQConfig config;
+
+        config.num_queues = 3;                // Q0, Q1, Q2
+        int quanta[3] = {10, 30, -1};         // Q0, Q1, Q2 (FCFS)
+        int allotment[3] = {20, 100, -1};     // max time per queue
+        config.time_quantum = quanta;
+        config.allotment = allotment;
+        config.boost_period = 300;            // priority boost every 300 units
+
+        // initialize the MLFQ inside SchedulerState
+        init_mlfq(&state.mlfq, &config);
+    }
     else
     {
         printf("Unknown algorithm: %s\n", algorithm);
