@@ -82,7 +82,7 @@ void heap_insert(MinHeap *heap, Process *proc, int (*cmp)(Process *, Process *))
     {
         int new_capacity = heap->capacity * 2;
         Process **temp = realloc(heap->process, new_capacity * sizeof(Process *));
-        
+
         if (temp == NULL) {
             fprintf(stderr, "Fatal: Heap expansion failed (Out of Memory)\n");
             return; 
@@ -100,7 +100,7 @@ void heap_insert(MinHeap *heap, Process *proc, int (*cmp)(Process *, Process *))
 // extract min process
 Process *heap_extract_min(MinHeap *heap, int (*cmp)(Process *, Process *))
 {
-    if (heap->size == 0)
+    if (!heap || heap->size == 0)
         return NULL; // empty heap
 
     Process *min_proc = heap->process[0];
@@ -114,7 +114,7 @@ Process *heap_extract_min(MinHeap *heap, int (*cmp)(Process *, Process *))
 // peek only, don't remove
 Process *heap_peek(MinHeap *heap)
 {
-    if (heap->size == 0)
+    if (!heap || heap->size == 0)
         return NULL;
     return heap->process[0];
 }
