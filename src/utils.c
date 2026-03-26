@@ -20,13 +20,13 @@ void init_scheduler(SchedulerState *state)
 }
 
 void init_mlfq(MLFQScheduler *sched, MLFQConfig *config) {
-    sched->num_queues = config->num_queues;
+    sched->num_queues = config->queues;
     sched->boost_period = config->boost_period;
     sched->last_boost = 0;
 
-    sched->queues = malloc(sizeof(MLFQQueue) * config->num_queues);
+    sched->queues = malloc(sizeof(MLFQQueue) * config->queues);
 
-    for (int i = 0; i < config->num_queues; i++) {
+    for (int i = 0; i < config->queues; i++) {
         sched->queues[i].level = i;
         sched->queues[i].time_quantum = config->time_quantum[i];
         sched->queues[i].allotment = config->allotment[i];
