@@ -57,16 +57,18 @@ typedef struct Event
     struct Event *next;
 } Event;
 
-typedef enum
-{
-    FCFS,
-    SJF,
-    STCF,
-    RR,
-    MLFQ
-} SchedulingAlgorithm;
+// scheduling algo used in event
+typedef int SchedulingAlgorithm;
+
+#define FCFS 1
+#define SJF  2
+#define STCF 3
+#define RR   4
+#define MLFQ 5
+
 
 void init_scheduler(SchedulerState *state);
+void simulate_scheduler(SchedulerState *state, int algorithm);
 
 void enqueue(Queue *queue, Process *proc);
 Node *dequeue(Queue *queue);

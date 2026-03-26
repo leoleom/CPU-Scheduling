@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 {
 
     char *algorithm_str = NULL;
-    char algorithm;
+    char *algorithm;
     char *input = NULL;
     int quantum = 20;
 
@@ -78,7 +78,8 @@ int main(int argc, char *argv[])
     }
     else
     {
-        printf("Unknown algorithm: %s\n", algorithm);
+        printf("Unknown algorithm: %s\n", algorithm_str);
+        return 0;
     }
 
     simulate_scheduler(&state, algorithm);
