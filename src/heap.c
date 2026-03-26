@@ -56,10 +56,22 @@ static void heapify_down(MinHeap *heap, int index, int (*cmp)(Process *, Process
 // create a new heap
 MinHeap *create_heap(int capacity)
 {
+    if (capacity <= 0) {
+        return NULL; 
+    }
+
     MinHeap *heap = malloc(sizeof(MinHeap));
+    if (!heap) return NULL;
+
     heap->process = malloc(capacity * sizeof(Process *));
+    if (!heap->process) {
+        free(heap); 
+        return NULL;
+    }
+
     heap->size = 0;
     heap->capacity = capacity;
+
     return heap;
 }
 
