@@ -106,7 +106,12 @@ Process *heap_extract_min(MinHeap *heap, int (*cmp)(Process *, Process *))
     Process *min_proc = heap->process[0];
     heap->process[0] = heap->process[heap->size - 1];
     heap->size--;
-    heapify_down(heap, 0, cmp);
+
+    // only check if there are still items
+    if (heap->size > 0)
+    {
+        heapify_down(heap, 0, cmp);
+    }
 
     return min_proc;
 }
@@ -129,14 +134,6 @@ void free_heap(MinHeap *heap)
     }
 }
 
-// compare
-int cmp_sjf(Process *a, Process *b)
-{
-    if (a->remaining_time != b->remaining_time)
-        return a->remaining_time - b->remaining_time;
-
-    return a->arrival_time - b->arrival_time;
-}
 
 int cmp_stcf(Process *a, Process *b)
 {

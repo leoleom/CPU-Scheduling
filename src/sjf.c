@@ -31,3 +31,15 @@ int schedule_sjf(SchedulerState *state, MinHeap *heap) {
 
     return 0;
 }
+
+int cmp_sjf(Process *a, Process *b)
+{
+    if (a->remaining_time < b->remaining_time) return -1;
+    if (a->remaining_time > b->remaining_time) return 1;
+
+    // tie-breaker: arrival_time
+    if (a->arrival_time < b->arrival_time) return -1;
+    if (a->arrival_time > b->arrival_time) return 1;
+
+    return 0; // equal
+}
