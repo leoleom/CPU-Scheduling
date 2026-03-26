@@ -22,9 +22,9 @@ typedef struct {
 
 // static rules
 typedef struct {
-    int num_queues;         
-    int *time_quantum;      
-    int *allotment;         
+    int queues;         
+    int time_quantum[3];      
+    int allotment[3];         
     int boost_period;       
 } MLFQConfig;
 

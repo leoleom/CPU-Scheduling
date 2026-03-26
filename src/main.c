@@ -64,14 +64,12 @@ int main(int argc, char *argv[])
         algorithm = MLFQ;
 
         // set the configurations
-        MLFQConfig config;
-
-        config.num_queues = 3;                // Q0, Q1, Q2
-        int quanta[3] = {10, 30, -1};         // Q0, Q1, Q2 (FCFS)
-        int allotment[3] = {20, 100, -1};     // max time per queue
-        config.time_quantum = quanta;
-        config.allotment = allotment;
-        config.boost_period = 300;            // priority boost every 300 units
+        MLFQConfig config = {
+            .queues = 3,
+            .time_quantum = {10, 30, -1},
+            .allotment = {20, 100, -1},
+            .boost_period = 300                             // priority boost every 300 units (arbitrary)
+        };          
 
         // initialize the MLFQ inside SchedulerState
         init_mlfq(&state.mlfq, &config);
