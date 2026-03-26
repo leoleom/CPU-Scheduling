@@ -133,12 +133,3 @@ void free_heap(MinHeap *heap)
         free(heap);
     }
 }
-
-
-int cmp_stcf(Process *a, Process *b)
-{
-    if (a->remaining_time != b->remaining_time)
-        return a->remaining_time - b->remaining_time;
-
-    return a->arrival_time - b->arrival_time;
-}

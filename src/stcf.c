@@ -31,3 +31,16 @@ int schedule_stcf(SchedulerState *state, MinHeap *heap)
 
     return 0;
 }
+
+int cmp_stcf(Process *a, Process *b)
+{
+    // shortst time to completion first
+    if (a->remaining_time < b->remaining_time) return -1;
+    if (a->remaining_time > b->remaining_time) return 1;
+
+    // tie breaker 
+    if (a->arrival_time < b->arrival_time) return -1;
+    if (a->arrival_time > b->arrival_time) return 1;
+
+    return 0; 
+}
