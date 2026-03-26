@@ -80,8 +80,16 @@ void heap_insert(MinHeap *heap, Process *proc, int (*cmp)(Process *, Process *))
 {
     if (heap->size == heap->capacity)
     {
-        heap->capacity *= 2;
-        heap->process = realloc(heap->process, heap->capacity * sizeof(Process *));
+        int new_capacity = heap->capacity * 2;
+        Process **temp = realloc(heap->process, new_capacity * sizeof(Process *));
+        
+        if (temp == NULL) {
+            fprintf(stderr, "Fatal: Heap expansion failed (Out of Memory)\n");
+            return; 
+        }
+
+        heap->capacity = new_capacity;
+        heap->process = temp;
     }
 
     heap->process[heap->size] = proc;
