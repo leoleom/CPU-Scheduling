@@ -2,6 +2,60 @@
 #include "gantt.h"
 
 
+// SCHEDULER
+int schedule_mlfq(SchedulerState *state, MLFQConfig *config)
+{
+
+    if (!state || state->num_processes == 0)
+        return -1;
+
+    MLFQScheduler *sched = &state->mlfq;
+
+    // Pick the next process if CPU is idle
+    if (state->current_process == NULL)
+    {
+        for (int i = 0; i < sched->num_queues; i++)
+        {
+            if (sched->queues[i].size > 0)
+            {
+                Node *node = dequeue_mlfq(&sched->queues[i]);
+                Process *p = node->process;
+                free(node);
+
+                state->current_process = p;
+
+                // Record start time if first execution
+                if (p->start_time == -1)
+                    p->start_time = state->current_time;
+
+                // Schedule either completion or quantum expiration
+                int q = sched->queues[i].time_quantum;
+                int remaining = p->remaining_time;
+
+                if (q > 0 && remaining > q) // quantum-limited
+                {
+                    schedule_event(state, p, EVENT_QUANTUM_EXPIRE,
+                                   state->current_time + q);
+                }
+                else // process will finish before quantum expires
+                {
+                    schedule_event(state, p, EVENT_COMPLETION,
+                                   state->current_time + remaining);
+                }
+
+                break; // CPU now occupied
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+
+
+// MLFQ HELPERS
+
 void mlfq_adjust_priority(MLFQScheduler *scheduler, Process *p)
 {
     MLFQQueue *current_queue = &scheduler->queues[p->priority];
@@ -64,55 +118,4 @@ void mlfq_select_next_process(SchedulerState *state, MLFQScheduler *sched)
             break;
         }
     }
-}
-
-
-
-// SCHEDULER
-int schedule_mlfq(SchedulerState *state, MLFQConfig *config)
-{
-
-    if (!state || state->num_processes == 0)
-        return -1;
-
-    MLFQScheduler *sched = &state->mlfq;
-
-    // Pick the next process if CPU is idle
-    if (state->current_process == NULL)
-    {
-        for (int i = 0; i < sched->num_queues; i++)
-        {
-            if (sched->queues[i].size > 0)
-            {
-                Node *node = dequeue_mlfq(&sched->queues[i]);
-                Process *p = node->process;
-                free(node);
-
-                state->current_process = p;
-
-                // Record start time if first execution
-                if (p->start_time == -1)
-                    p->start_time = state->current_time;
-
-                // Schedule either completion or quantum expiration
-                int q = sched->queues[i].time_quantum;
-                int remaining = p->remaining_time;
-
-                if (q > 0 && remaining > q) // quantum-limited
-                {
-                    schedule_event(state, p, EVENT_QUANTUM_EXPIRE,
-                                   state->current_time + q);
-                }
-                else // process will finish before quantum expires
-                {
-                    schedule_event(state, p, EVENT_COMPLETION,
-                                   state->current_time + remaining);
-                }
-
-                break; // CPU now occupied
-            }
-        }
-    }
-
-    return 0;
 }
