@@ -5,6 +5,7 @@ SRC_DIR = src
 
 # sources and objects
 SRCS = $(SRC_DIR)/main.c \
+       $(SRC_DIR)/scheduler.c \
        $(SRC_DIR)/process.c \
        $(SRC_DIR)/heap.c \
        $(SRC_DIR)/fcfs.c \
@@ -14,7 +15,7 @@ SRCS = $(SRC_DIR)/main.c \
        $(SRC_DIR)/mlfq.c \
        $(SRC_DIR)/metrics.c \
        $(SRC_DIR)/gantt.c \
-	   $(SRC_DIR)/utils.c 
+	$(SRC_DIR)/utils.c 
 
 OBJS = $(SRCS:.c=.o)                
 TARGET = schedsim
