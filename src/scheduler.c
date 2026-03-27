@@ -5,12 +5,12 @@
 int simulate_scheduler(SchedulerState *state,
                         SchedulingAlgorithm algorithm)
 {
-    Event *event_queue = initialize_events(state);
+    initialize_events(state, algorithm);
     state->current_process = NULL;
 
-    while (event_queue != NULL)
+    while (state->event_queue != NULL)
     {
-        Event *current = pop_event(&event_queue);
+        Event *current = pop_event(&state->event_queue);
         state->current_time = current->time;
 
         // Handle event
@@ -65,19 +65,19 @@ int simulate_scheduler(SchedulerState *state,
             switch (algorithm)
             {
             case FCFS:
-                sched_result = schedule_fcfs(&state);
+                sched_result = schedule_fcfs(state);
                 break;
             case SJF:
-                sched_result = schedule_sjf(&state, state->heap);
+                sched_result = schedule_sjf(state, &state->heap);
                 break;
             case STCF:
-                sched_result = schedule_stcf(&state, state->heap);
+                sched_result = schedule_stcf(state, &state->heap);
                 break;
             case RR:
-                sched_result = schedule_rr(&state, state->rr_quantum);
+                sched_result = schedule_rr(state, state->rr_quantum);
                 break;
             case MLFQ:
-                sched_result = schedule_mlfq(&state, &state->mlfq);
+                sched_result = schedule_mlfq(state, &state->mlfq);
                 break;
             }
 
