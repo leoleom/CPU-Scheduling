@@ -53,11 +53,11 @@ void init_mlfq(MLFQScheduler *sched, MLFQConfig *config)
 {
 
     // extra defense
-    if (!sched || !config || !config->time_quantum || !config->allotment)
-    {
-        fprintf(stderr, "Error: Invalid MLFQ configuration provided.\n");
-        return;
-    }
+    if (!sched || !config || config->queues <= 0)
+{
+    fprintf(stderr, "Error: Invalid MLFQ configuration provided.\n");
+    return;
+}
 
     sched->num_queues = config->queues;
     sched->boost_period = config->boost_period;

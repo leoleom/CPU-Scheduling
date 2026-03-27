@@ -3,8 +3,6 @@
 
 #include "process.h"
 
-struct Node;
-
 typedef struct {
     int level;              // Queue priority level (0 = highest)
     int time_quantum;       // Time slice for this queue (-1 for FCFS)
@@ -34,6 +32,8 @@ typedef struct {
 void enqueue_mlfq(MLFQQueue *q, Process *p);
 Node *dequeue_mlfq(MLFQQueue *q);
 
+struct SchedulerState;
+typedef struct SchedulerState SchedulerState;
 void mlfq_check_preemption(SchedulerState *state, MLFQScheduler *sched);
 void mlfq_select_next_process(SchedulerState *state, MLFQScheduler *sched);
 

@@ -11,6 +11,8 @@ typedef struct Node
     struct Node *next;
 } Node;
 
+#include "mlfq.h"
+
 typedef struct
 {
     Node *head;
@@ -18,31 +20,14 @@ typedef struct
     int size;
 } Queue;
 
-#include "mlfq.h"
-
-typedef struct
-{
-    Process *processes; // Array of all processes
-    int num_processes;  // Number of processes
-    int current_time;   // Current simulation time
-
-    Queue ready_queue;
-    Process *current_process; // current running process
-    char *gantt_chart;
-    int gantt_size;
-
-    int rr_quantum;
-
-    MinHeap heap;
-
-    MLFQScheduler mlfq;
-
-    Event *event_queue;
-
-    int last_event_time;
-    
-    // store metrics
-} SchedulerState;
+// scheduling algo used in event
+typedef enum {
+    FCFS = 1,
+    SJF,
+    STCF,
+    RR,
+    MLFQ
+} SchedulingAlgorithm;
 
 typedef enum
 {
@@ -60,14 +45,29 @@ typedef struct Event
     struct Event *next;
 } Event;
 
-// scheduling algo used in event
-typedef enum {
-    FCFS = 1,
-    SJF,
-    STCF,
-    RR,
-    MLFQ
-} SchedulingAlgorithm;
+typedef struct SchedulerState
+{
+    Process *processes; // Array of all processes
+    int num_processes;  // Number of processes
+    int current_time;   // Current simulation time
+
+    Queue ready_queue;
+    Process *current_process; // current running process
+    char *gantt_chart;
+    int gantt_size;
+
+    int rr_quantum;
+
+    MinHeap heap;
+
+    MLFQScheduler mlfq;
+
+    Event *event_queue;
+    int last_event_time;
+    
+    // store metrics
+} SchedulerState;
+
 
 // initializations
 void init_scheduler(SchedulerState *state);
