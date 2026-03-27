@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// INITIALIZATIONS
 void init_scheduler(SchedulerState *state)
 {
     state->ready_queue.head = NULL;
@@ -10,6 +11,7 @@ void init_scheduler(SchedulerState *state)
     state->current_process = NULL;
     state->gantt_chart = NULL;
     state->gantt_size = 0;
+    state->event_queue = NULL;
     
 
     for (int i = 0; i < state->num_processes; i++)
@@ -187,5 +189,18 @@ void handle_arrivals_mlfq(SchedulerState *state, MLFQScheduler *sched, int time)
 
     // pick next process to run
     mlfq_select_next_process(state, sched);
+}
+
+// SIMULATOR ENGINE HELPERS
+
+Event *pop_event(Event **event_queue)
+{
+    if (!event_queue || !*event_queue)
+        return NULL;
+
+    Event *front = *event_queue;       // take the head (earliest event)
+    *event_queue = front->next;        // move queue forward
+    front->next = NULL;                // clean up dangling pointer
+    return front;                      // caller owns and frees this
 }
 
