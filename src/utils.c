@@ -10,6 +10,7 @@ void init_scheduler(SchedulerState *state)
     state->current_process = NULL;
     state->gantt_chart = NULL;
     state->gantt_size = 0;
+    
 
     for (int i = 0; i < state->num_processes; i++)
     {
@@ -91,18 +92,16 @@ void enqueue_mlfq(MLFQQueue *q, Process *p)
     q->size++;
 }
 
-Process *dequeue_mlfq(MLFQQueue *q)
+Node *dequeue_mlfq(MLFQQueue *q)
 {
     if (!q->head)
         return NULL;
     Node *node = q->head;
-    Process *p = node->process;
     q->head = node->next;
     if (!q->head)
         q->tail = NULL;
-    free(node);
     q->size--;
-    return p;
+    return node;
 }
 
 // HANDLE ARRIVALS
