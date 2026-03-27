@@ -74,10 +74,11 @@ void init_scheduler(SchedulerState *state);
 void init_mlfq(MLFQScheduler *sched, MLFQConfig *config);
 
 // simulation engine
-int simulate_scheduler(SchedulerState *state, int algorithm);
+int simulate_scheduler(SchedulerState *state, SchedulingAlgorithm algorithm);
 void schedule_event(SchedulerState *state, Process *p, EventType type, int event_time);
 
 // handling event helpers
+void handle_completion(SchedulerState *state, Process *p);
 void handle_quantum_expire(SchedulerState *state, Process *p, SchedulingAlgorithm algorithm);
 void handle_priority_boost(SchedulerState *state);
 void initialize_events(SchedulerState *state, SchedulingAlgorithm algorithm);
