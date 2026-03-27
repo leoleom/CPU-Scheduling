@@ -204,3 +204,61 @@ Event *pop_event(Event **event_queue)
     return front;                      // caller owns and frees this
 }
 
+void schedule_event(SchedulerState *state, Process *p, EventType type, int event_time)
+{
+    Event *event = malloc(sizeof(Event));
+    event->time = event_time;
+    event->type = type;
+    event->process = p;
+    event->next = NULL;
+
+    // list is empty, new event becomes head
+    if (state->event_queue == NULL)
+    {
+        state->event_queue = event;
+        return;
+    }
+
+    // check if new event should go at the front
+    if (event->time < state->event_queue->time)
+    {
+        event->next = state->event_queue;
+        state->event_queue = event;
+        return;
+    }
+
+    Event *current = state->event_queue;
+    while (current->next != NULL && current->next->time <= event->time)
+    {
+        current = current->next;
+    }
+
+    // insert new event after current
+    event->next = current->next;
+    current->next = event;
+}
+
+void handle_quantum_expire(SchedulerState *state, Process *p)
+{
+    // reduce remaining time by quantum
+    p->remaining_time -= state->rr_quantum;
+
+    // put process back in queue
+    enqueue(&state->ready_queue, p);
+}
+
+void handle_priority_boost(SchedulerState *state)
+{
+    // perform the priority boost
+    mlfq_priority_boost(&state->mlfq, state->current_time);
+
+    // preempt current process if a higher-priority process exists
+    mlfq_check_preemption(state, &state->mlfq);
+
+    // pick next process to run if CPU is idle
+    mlfq_select_next_process(state, &state->mlfq);
+
+    // schedule the next priority boost event
+    schedule_event(state, NULL, EVENT_PRIORITY_BOOST,
+                   state->current_time + state->mlfq.boost_period);
+}
