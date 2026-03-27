@@ -62,10 +62,26 @@ int main(int argc, char *argv[])
     else if (strcmp(algorithm_str, "SJF") == 0)
     {
         algorithm = SJF;
+        state.heap.process  = malloc(count * sizeof(Process *));
+        if (!state.heap.process) {
+            fprintf(stderr, "Fatal: Heap allocation failed.\n");
+            free(state.processes);
+            return 1;
+        }
+        state.heap.capacity = count;
+        state.heap.size     = 0;
     }
     else if (strcmp(algorithm_str, "STCF") == 0)
     {
         algorithm = STCF;
+        state.heap.process  = malloc(count * sizeof(Process *));
+        if (!state.heap.process) {
+            fprintf(stderr, "Fatal: Heap allocation failed.\n");
+            free(state.processes);
+            return 1;
+        }
+        state.heap.capacity = count;
+        state.heap.size     = 0;
     }
     else if (strcmp(algorithm_str, "RR") == 0)
     {
@@ -85,8 +101,8 @@ int main(int argc, char *argv[])
         };
 
         // handle error
-        if (config.queues > 3|| config.queues <= 0) {
-            fprintf(stderr, "Error: MLFQ must have between 1 and %d queues.\n", 3);
+        if (config.queues > MAX_QUEUES || config.queues <= 0) {
+            fprintf(stderr, "Error: MLFQ must have between 1 and %d queues.\n", MAX_QUEUES);
             return 1;
         }
 
@@ -111,6 +127,12 @@ int main(int argc, char *argv[])
 
     printf("\n=== DETAILED CALCULATION ===\n");
     print_metrics_calculation(state.processes, state.num_processes);
+
+    if (algorithm == MLFQ)
+        free(state.mlfq.queues);
+ 
+    if (algorithm == SJF || algorithm == STCF)
+        free(state.heap.process);
 
     free(state.processes);
 

@@ -3,7 +3,7 @@
 #include "process.h"
 
 int simulate_scheduler(SchedulerState *state,
-                        SchedulingAlgorithm algorithm)
+                       SchedulingAlgorithm algorithm)
 {
     initialize_events(state, algorithm);
     state->current_process = NULL;
@@ -11,51 +11,56 @@ int simulate_scheduler(SchedulerState *state,
     while (state->event_queue != NULL)
     {
         Event *current = pop_event(&state->event_queue);
+        if(!current)
+            break;
         state->current_time = current->time;
-
-        // Handle event
-        if (current)
+        
+        switch (current->type)
         {
-            switch (current->type)
+        case EVENT_ARRIVAL:
+            switch (algorithm)
             {
-            case EVENT_ARRIVAL:
-                switch (algorithm)
-                {
-                case FCFS:
-                case RR:
-                    handle_arrivals_queue(state, state->current_time);
-                    break;
-                case SJF:
-                    handle_arrivals_sjf(state, &state->heap, state->current_time);
-                    break;
-                case STCF:
-                    handle_arrivals_stcf(state, &state->heap, state->current_time);
-                    break;
-                case MLFQ:
-                    handle_arrivals_mlfq(state, &state->mlfq, state->current_time);
-                    break;
-                }
+            case FCFS:
+            case RR:
+                handle_arrivals_queue(state, state->current_time);
                 break;
-            case EVENT_COMPLETION:
+            case SJF:
+                handle_arrivals_sjf(state, &state->heap, state->current_time);
+                break;
+            case STCF:
+                handle_arrivals_stcf(state, &state->heap, state->current_time);
+                break;
+            case MLFQ:
+                handle_arrivals_mlfq(state, &state->mlfq, state->current_time);
+                break;
+            }
+            break;
+        case EVENT_COMPLETION:
+            if (current->process == state->current_process)
+            {
                 handle_completion(state, current->process);
-                break;
-            case EVENT_QUANTUM_EXPIRE:
+            }
+            break;
+        case EVENT_QUANTUM_EXPIRE:
+            if (current->process == state->current_process)
+            {
                 handle_quantum_expire(state, current->process, algorithm);
                 if (algorithm == MLFQ)
                 {
                     mlfq_adjust_priority(&state->mlfq, current->process);
                 }
                 state->current_process = NULL; // pick next process
-                break;
-
-            case EVENT_PRIORITY_BOOST:
-                handle_priority_boost(state);
-                break;
             }
+            break;
 
-            state->last_event_time = state->current_time;
-            free(current);
+        case EVENT_PRIORITY_BOOST:
+            handle_priority_boost(state);
+            break;
         }
+
+        state->last_event_time = state->current_time;
+        free(current);
+    
 
         if (state->current_process == NULL)
         {
@@ -77,24 +82,24 @@ int simulate_scheduler(SchedulerState *state,
                 sched_result = schedule_rr(state, state->rr_quantum);
                 break;
             case MLFQ:
-                sched_result = schedule_mlfq(state, &state->mlfq);
+                sched_result = schedule_mlfq(state);
                 break;
             }
 
             if (sched_result == -1)
             {
                 fprintf(stderr, "Scheduler error: failed to schedule next process "
-                        "(algorithm=%d, time=%d)\n",
+                                "(algorithm=%d, time=%d)\n",
                         algorithm, state->current_time);
-                break; 
+                break;
             }
         }
-
+        
     }
+    
 
     calculate_metrics(state->processes, state->num_processes);
     print_results(state);
 
     return 0;
 }
-

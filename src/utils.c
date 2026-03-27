@@ -10,6 +10,9 @@ void init_scheduler(SchedulerState *state)
     if (!state) 
         return;
 
+        
+    memset(state, 0, sizeof(SchedulerState));
+
     // defensive ulit bro
     while (state->event_queue != NULL) {
         Event *temp = pop_event(&state->event_queue);
@@ -28,6 +31,11 @@ void init_scheduler(SchedulerState *state)
 
     state->gantt_chart = NULL;
     state->gantt_size = 0;
+    state->rr_quantum        = 0;
+
+    state->heap.process      = NULL;
+    state->heap.size         = 0;
+    state->heap.capacity     = 0;
 
     for (int i = 0; i < state->num_processes; i++)
     {
@@ -193,8 +201,11 @@ void handle_arrivals_stcf(SchedulerState *state, MinHeap *heap, int time)
         Process *shortest = heap_peek(heap);
         if (shortest->remaining_time < state->current_process->remaining_time)
         {
+            int delta = state->current_time - state->last_event_time;
+            state->current_process->remaining_time -= delta;
+
             heap_insert(heap, state->current_process, cmp_stcf);
-            state->current_process = heap_extract_min(heap, cmp_stcf);
+            state->current_process = NULL;
         }
     }
 }
@@ -226,9 +237,6 @@ void handle_arrivals_mlfq(SchedulerState *state, MLFQScheduler *sched, int time)
         }
     }
 
-    // boost priorities if needed
-    mlfq_priority_boost(sched, time);
-
     // preempt if higher-priority process exists
     mlfq_check_preemption(state, sched);
 
@@ -239,7 +247,8 @@ void handle_arrivals_mlfq(SchedulerState *state, MLFQScheduler *sched, int time)
 // SIMULATOR ENGINE HELPERS
 
 void initialize_events(SchedulerState *state, SchedulingAlgorithm algorithm) {
-    if (!state || !state->processes) return;
+    if (!state || !state->processes) 
+        return;
 
     for (int i = 0; i < state->num_processes; i++) {
         Process *p = &state->processes[i];
@@ -326,25 +335,16 @@ void handle_quantum_expire(SchedulerState *state, Process *p, SchedulingAlgorith
         p->time_in_queue += q;
     }
 
-    if (algorithm == MLFQ) {
-        enqueue_mlfq(&state->mlfq.queues[p->priority], p);
-    } else {
+    if (algorithm != MLFQ)
         enqueue(&state->ready_queue, p);
-    }
 }
 
 void handle_priority_boost(SchedulerState *state)
 {
 
     if (state->current_process != NULL) {
-        int delta = state->current_time - state->last_event_time;
-        state->current_process->remaining_time -= delta;
-        state->current_process->time_in_queue += delta;
-        
         state->current_process->priority = 0;
         state->current_process->time_in_queue = 0;
-        
-        state->last_event_time = state->current_time;
     }
 
     // perform the priority boost

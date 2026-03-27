@@ -33,7 +33,7 @@ typedef struct
 
     int rr_quantum;
 
-    MinHeap *heap;
+    MinHeap heap;
 
     MLFQScheduler mlfq;
 
@@ -101,6 +101,6 @@ int schedule_fcfs(SchedulerState *state);
 int schedule_sjf(SchedulerState *state, MinHeap *heap);
 int schedule_stcf(SchedulerState *state, MinHeap *heap);
 int schedule_rr(SchedulerState *state, int quantum);
-int schedule_mlfq(SchedulerState *state, MLFQConfig *config);
+int schedule_mlfq(SchedulerState *state);
 
 #endif

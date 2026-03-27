@@ -2,7 +2,7 @@
 #include "gantt.h"
 
 // SCHEDULER
-int schedule_mlfq(SchedulerState *state, MLFQConfig *config)
+int schedule_mlfq(SchedulerState *state)
 {
 
     if (!state || state->num_processes == 0)
@@ -67,20 +67,12 @@ void mlfq_adjust_priority(MLFQScheduler *scheduler, Process *p)
         {
             p->priority++;
             p->time_in_queue = 0; // Reset allotment
-            enqueue_mlfq(&scheduler->queues[p->priority], p);
-        }
-        else
-        {
-            // already at lowest priority, just re-enqueue
-            enqueue_mlfq(&scheduler->queues[p->priority], p);
         }
     }
 
-    else
-    {
-        // Allotment not exhausted, put back in same queue
-        enqueue_mlfq(&scheduler->queues[p->priority], p);
-    }
+    // Allotment not exhausted, put back in same queue
+    enqueue_mlfq(&scheduler->queues[p->priority], p);
+
 }
 
 void mlfq_priority_boost(MLFQScheduler *scheduler, int current_time)
@@ -125,10 +117,8 @@ void mlfq_check_preemption(SchedulerState *state, MLFQScheduler *sched)
             p->time_in_queue += delta;
 
             // put the running process back into its queue
-            enqueue_mlfq(&sched->queues[state->current_process->priority], state->current_process);
+            enqueue_mlfq(&sched->queues[p->priority], p);
             state->current_process = NULL;
-
-            state->last_event_time = state->current_time;
             return;
         }
     }

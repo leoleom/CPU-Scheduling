@@ -85,7 +85,7 @@ void heap_insert(MinHeap *heap, Process *proc, int (*cmp)(Process *, Process *))
 {
     if (!heap || !proc) return;
     
-    if (heap->size == heap->capacity)
+    if (heap->size >= heap->capacity)
     {
         int new_capacity = heap->capacity * 2;
         Process **temp = realloc(heap->process, new_capacity * sizeof(Process *));
