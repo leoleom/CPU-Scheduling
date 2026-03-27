@@ -77,6 +77,7 @@ void schedule_event(SchedulerState *state, Process *p, EventType type, int event
 // handling event helpers
 void handle_quantum_expire(SchedulerState *state, Process *p);
 void handle_priority_boost(SchedulerState *state);
+void initialize_events(SchedulerState *state, SchedulingAlgorithm algorithm);
 Event *pop_event(Event **event_queue);
 
 // enqueue for fcfs and rr

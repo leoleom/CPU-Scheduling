@@ -225,6 +225,20 @@ void handle_arrivals_mlfq(SchedulerState *state, MLFQScheduler *sched, int time)
 
 // SIMULATOR ENGINE HELPERS
 
+void initialize_events(SchedulerState *state, SchedulingAlgorithm algorithm) {
+    if (!state || !state->processes) return;
+
+    for (int i = 0; i < state->num_processes; i++) {
+        Process *p = &state->processes[i];
+        schedule_event(state, p, EVENT_ARRIVAL, p->arrival_time);
+    }
+    
+    // for mlfq implementations 
+    if (algorithm == MLFQ) {
+        schedule_event(state, NULL, EVENT_PRIORITY_BOOST, state->mlfq.boost_period);
+    }
+}
+
 Event *pop_event(Event **event_queue)
 {
     if (!event_queue || !*event_queue)
