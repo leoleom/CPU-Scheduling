@@ -66,10 +66,20 @@ typedef int SchedulingAlgorithm;
 #define RR   4
 #define MLFQ 5
 
-
+// initializations
 void init_scheduler(SchedulerState *state);
-int simulate_scheduler(SchedulerState *state, int algorithm);
+void init_mlfq(MLFQScheduler *sched, MLFQConfig *config);
 
+// simulation engine
+int simulate_scheduler(SchedulerState *state, int algorithm);
+void schedule_event(SchedulerState *state, Process *p, EventType type, int event_time);
+
+// handling event helpers
+void handle_quantum_expire(SchedulerState *state, Process *p);
+void handle_priority_boost(SchedulerState *state);
+Event *pop_event(Event **event_queue);
+
+// enqueue for fcfs and rr
 void enqueue(Queue *queue, Process *proc);
 Node *dequeue(Queue *queue);
 

@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     else
     {
         printf("Unknown algorithm: %s\n", algorithm_str);
-        return 0;
+        return 1;
     }
 
     simulate_scheduler(&state, algorithm);
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr, "Simulation failed.\n");
         free(state.processes);
-        return 1;
+        return ;
     }
 
     printf("=== METRICS ===\n");

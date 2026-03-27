@@ -28,6 +28,13 @@ typedef struct {
     int boost_period;       
 } MLFQConfig;
 
+void enqueue_mlfq(MLFQQueue *q, Process *p);
+Node *dequeue_mlfq(MLFQQueue *q);
+
+int schedule_mlfq(SchedulerState *state, MLFQConfig *config);
+void mlfq_check_preemption(SchedulerState *state, MLFQScheduler *sched);
+void mlfq_select_next_process(SchedulerState *state, MLFQScheduler *sched);
+
 void mlfq_adjust_priority(MLFQScheduler *scheduler, Process *p);
 void mlfq_priority_boost(MLFQScheduler *scheduler, int current_time);
 
