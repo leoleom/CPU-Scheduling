@@ -68,7 +68,7 @@ typedef int SchedulingAlgorithm;
 
 
 void init_scheduler(SchedulerState *state);
-void simulate_scheduler(SchedulerState *state, int algorithm);
+int simulate_scheduler(SchedulerState *state, int algorithm);
 
 void enqueue(Queue *queue, Process *proc);
 Node *dequeue(Queue *queue);

@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
         algorithm = RR;
         state.rr_quantum = quantum;
     }
-    else if(strcmp(algorithm_str, "MLFQ") == 0)
+    else if (strcmp(algorithm_str, "MLFQ") == 0)
     {
         algorithm = MLFQ;
 
@@ -68,8 +68,8 @@ int main(int argc, char *argv[])
             .queues = 3,
             .time_quantum = {10, 30, -1},
             .allotment = {20, 100, -1},
-            .boost_period = 300                             // priority boost every 300 units (arbitrary)
-        };          
+            .boost_period = 300 // priority boost every 300 units (arbitrary)
+        };
 
         // initialize the MLFQ inside SchedulerState
         init_mlfq(&state.mlfq, &config);
@@ -81,6 +81,13 @@ int main(int argc, char *argv[])
     }
 
     simulate_scheduler(&state, algorithm);
+
+    if (simulate_scheduler(&state, algorithm) == -1)
+    {
+        fprintf(stderr, "Simulation failed.\n");
+        free(state.processes);
+        return 1;
+    }
 
     printf("=== METRICS ===\n");
     print_process_metrics(state.processes, state.num_processes);

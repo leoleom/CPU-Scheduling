@@ -1,7 +1,8 @@
+#include <stdio.h>
 #include "scheduler.h"
 #include "process.h"
 
-void simulate_scheduler(SchedulerState *state,
+int simulate_scheduler(SchedulerState *state,
                         SchedulingAlgorithm algorithm)
 {
     Event *event_queue = initialize_events(state);
@@ -58,23 +59,34 @@ void simulate_scheduler(SchedulerState *state,
 
         if (state->current_process == NULL)
         {
+
+            int sched_result = 0;
+
             switch (algorithm)
             {
             case FCFS:
-                schedule_fcfs(&state);
+                sched_result = schedule_fcfs(&state);
                 break;
             case SJF:
-                schedule_sjf(&state, state->heap);
+                sched_result = schedule_sjf(&state, state->heap);
                 break;
             case STCF:
-                schedule_stcf(&state, state->heap);
+                sched_result = schedule_stcf(&state, state->heap);
                 break;
             case RR:
-                schedule_rr(&state, state->rr_quantum);
+                sched_result = schedule_rr(&state, state->rr_quantum);
                 break;
             case MLFQ:
-                schedule_mlfq(&state, &state->mlfq);
+                sched_result = schedule_mlfq(&state, &state->mlfq);
                 break;
+            }
+
+            if (sched_result == -1)
+            {
+                fprintf(stderr, "Scheduler error: failed to schedule next process "
+                        "(algorithm=%d, time=%d)\n",
+                        algorithm, state->current_time);
+                break; 
             }
         }
 
