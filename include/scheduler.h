@@ -38,6 +38,9 @@ typedef struct
     MLFQScheduler mlfq;
 
     Event *event_queue;
+
+    int last_event_time;
+    
     // store metrics
 } SchedulerState;
 

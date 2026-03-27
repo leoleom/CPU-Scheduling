@@ -1,7 +1,6 @@
 #include "scheduler.h"
 #include "gantt.h"
 
-
 // SCHEDULER
 int schedule_mlfq(SchedulerState *state, MLFQConfig *config)
 {
@@ -51,13 +50,13 @@ int schedule_mlfq(SchedulerState *state, MLFQConfig *config)
     return 0;
 }
 
-
-
-
 // MLFQ HELPERS
 
 void mlfq_adjust_priority(MLFQScheduler *scheduler, Process *p)
 {
+    if (!p)
+        return;
+
     MLFQQueue *current_queue = &scheduler->queues[p->priority];
 
     // Check if process exhausted its allotment
@@ -70,6 +69,17 @@ void mlfq_adjust_priority(MLFQScheduler *scheduler, Process *p)
             p->time_in_queue = 0; // Reset allotment
             enqueue_mlfq(&scheduler->queues[p->priority], p);
         }
+        else
+        {
+            // already at lowest priority, just re-enqueue
+            enqueue_mlfq(&scheduler->queues[p->priority], p);
+        }
+    }
+
+    else
+    {
+        // Allotment not exhausted, put back in same queue
+        enqueue_mlfq(&scheduler->queues[p->priority], p);
     }
 }
 
@@ -83,10 +93,12 @@ void mlfq_priority_boost(MLFQScheduler *scheduler, int current_time)
             MLFQQueue *queue = &scheduler->queues[i];
             while (queue->size > 0)
             {
-                Process *p = dequeue_mlfq(queue);
+                Node *node = dequeue_mlfq(queue);
+                Process *p = node->process;
                 p->priority = 0;
                 p->time_in_queue = 0;
                 enqueue_mlfq(&scheduler->queues[0], p);
+                free(node);
             }
         }
         scheduler->last_boost = current_time;
@@ -95,13 +107,30 @@ void mlfq_priority_boost(MLFQScheduler *scheduler, int current_time)
 
 void mlfq_check_preemption(SchedulerState *state, MLFQScheduler *sched)
 {
-    // if a higher-priority queue has a process, preempt current process
-    if (state->current_process != NULL && state->current_process->priority > 0 &&
-        sched->queues[0].size > 0)
+    if (state->current_process == NULL)
+        return;
+
+    int delta = state->current_time - state->last_event_time;
+
+    for (int i = 0; i < state->current_process->priority; i++)
     {
-        // put the running process back into its queue
-        enqueue(&sched->queues[state->current_process->priority], state->current_process);
-        state->current_process = NULL;
+        // if a higher-priority queue has a process, preempt current process
+        if (sched->queues[i].size > 0)
+        {
+
+            Process *p = state->current_process;
+
+            // update based on delta
+            p->remaining_time -= delta;
+            p->time_in_queue += delta;
+
+            // put the running process back into its queue
+            enqueue_mlfq(&sched->queues[state->current_process->priority], state->current_process);
+            state->current_process = NULL;
+
+            state->last_event_time = state->current_time;
+            return;
+        }
     }
 }
 
@@ -114,7 +143,9 @@ void mlfq_select_next_process(SchedulerState *state, MLFQScheduler *sched)
     {
         if (sched->queues[i].size > 0)
         {
-            state->current_process = dequeue_mlfq(&sched->queues[i]);
+            Node *node = dequeue_mlfq(&sched->queues[i]);
+            state->current_process = node->process;
+            free(node);
             break;
         }
     }

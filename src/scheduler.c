@@ -53,6 +53,7 @@ int simulate_scheduler(SchedulerState *state,
                 break;
             }
 
+            state->last_event_time = state->current_time;
             free(current);
         }
 

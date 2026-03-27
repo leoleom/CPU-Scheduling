@@ -1,10 +1,14 @@
-#include "scheduler.h"
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "scheduler.h"
+
 
 // INITIALIZATIONS
 void init_scheduler(SchedulerState *state)
-{
+{   
+    if (!state) 
+        return;
 
     // defensive ulit bro
     while (state->event_queue != NULL) {
@@ -15,11 +19,15 @@ void init_scheduler(SchedulerState *state)
     state->ready_queue.head = NULL;
     state->ready_queue.tail = NULL;
     state->ready_queue.size = 0;
+
+    state->current_time = 0;
+    state->last_event_time = 0;
+
     state->current_process = NULL;
+    state->event_queue = NULL;
+
     state->gantt_chart = NULL;
     state->gantt_size = 0;
-    state->current_time = 0;
-    state->event_queue = NULL;
 
     for (int i = 0; i < state->num_processes; i++)
     {
@@ -28,6 +36,8 @@ void init_scheduler(SchedulerState *state)
         state->processes[i].finish_time = -1;
         state->processes[i].waiting_time = 0;
         state->processes[i].turnaround_time = 0;
+        state->processes[i].priority = 0;
+        state->processes[i].time_in_queue = 0;
     }
 }
 
@@ -308,6 +318,14 @@ void handle_quantum_expire(SchedulerState *state, Process *p, SchedulingAlgorith
     if (!p) 
         return;
 
+    // update internal clock boss ass b****
+    int q = (algorithm == MLFQ) ? state->mlfq.queues[p->priority].time_quantum : state->rr_quantum;
+    
+    p->remaining_time -= q; 
+    if (algorithm == MLFQ) {
+        p->time_in_queue += q;
+    }
+
     if (algorithm == MLFQ) {
         enqueue_mlfq(&state->mlfq.queues[p->priority], p);
     } else {
@@ -317,6 +335,18 @@ void handle_quantum_expire(SchedulerState *state, Process *p, SchedulingAlgorith
 
 void handle_priority_boost(SchedulerState *state)
 {
+
+    if (state->current_process != NULL) {
+        int delta = state->current_time - state->last_event_time;
+        state->current_process->remaining_time -= delta;
+        state->current_process->time_in_queue += delta;
+        
+        state->current_process->priority = 0;
+        state->current_process->time_in_queue = 0;
+        
+        state->last_event_time = state->current_time;
+    }
+
     // perform the priority boost
     mlfq_priority_boost(&state->mlfq, state->current_time);
 
