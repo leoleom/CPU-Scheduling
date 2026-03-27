@@ -5,6 +5,13 @@
 // INITIALIZATIONS
 void init_scheduler(SchedulerState *state)
 {
+
+    // defensive ulit bro
+    while (state->event_queue != NULL) {
+        Event *temp = pop_event(&state->event_queue);
+        free(temp);
+    }
+
     state->ready_queue.head = NULL;
     state->ready_queue.tail = NULL;
     state->ready_queue.size = 0;
@@ -108,6 +115,12 @@ Node *dequeue(Queue *queue)
 void enqueue_mlfq(MLFQQueue *q, Process *p)
 {
     Node *node = malloc(sizeof(Node));
+    // malloc check again hays
+    if (!node) {
+        fprintf(stderr, "Fatal: MLFQ Node allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+
     node->process = p;
     node->next = NULL;
 
@@ -226,6 +239,11 @@ Event *pop_event(Event **event_queue)
 void schedule_event(SchedulerState *state, Process *p, EventType type, int event_time)
 {
     Event *event = malloc(sizeof(Event));
+    if (!event) {
+        fprintf(stderr, "Fatal: Event allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+
     event->time = event_time;
     event->type = type;
     event->process = p;
