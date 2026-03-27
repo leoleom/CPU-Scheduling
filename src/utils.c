@@ -212,7 +212,7 @@ void handle_arrivals_mlfq(SchedulerState *state, MLFQScheduler *sched, int time)
         {
             p->priority = 0;
             p->time_in_queue = 0;
-            enqueue(&sched->queues[0], p);
+            enqueue_mlfq(&sched->queues[0], p);
         }
     }
 
@@ -299,7 +299,7 @@ void handle_completion(SchedulerState *state, Process *p)
 
     p->finish_time = state->current_time;
     p->remaining_time = 0;
-    
+
     state->current_process = NULL;
 }
 
