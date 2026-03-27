@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
     char *algorithm_str = NULL;
     SchedulingAlgorithm algorithm;
     char *input = NULL;
-    int quantum = 20;
+    int quantum = 10;
 
     for (int i = 1; i < argc; i++)
     {

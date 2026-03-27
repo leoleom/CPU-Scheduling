@@ -75,7 +75,7 @@ int simulate_scheduler(SchedulerState *state, int algorithm);
 void schedule_event(SchedulerState *state, Process *p, EventType type, int event_time);
 
 // handling event helpers
-void handle_quantum_expire(SchedulerState *state, Process *p);
+void handle_quantum_expire(SchedulerState *state, Process *p, SchedulingAlgorithm algorithm);
 void handle_priority_boost(SchedulerState *state);
 void initialize_events(SchedulerState *state, SchedulingAlgorithm algorithm);
 Event *pop_event(Event **event_queue);

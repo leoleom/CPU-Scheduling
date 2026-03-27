@@ -38,10 +38,9 @@ int simulate_scheduler(SchedulerState *state,
                 break;
             case EVENT_COMPLETION:
                 handle_completion(state, current->process);
-                state->current_process = NULL; // pick next process
                 break;
             case EVENT_QUANTUM_EXPIRE:
-                handle_quantum_expire(state, current->process);
+                handle_quantum_expire(state, current->process, algorithm);
                 if (algorithm == MLFQ)
                 {
                     mlfq_adjust_priority(&state->mlfq, current->process);
@@ -90,14 +89,11 @@ int simulate_scheduler(SchedulerState *state,
             }
         }
 
-        // priority boost check (MLFQ only)
-        if (algorithm == MLFQ && state->current_time - state->mlfq.last_boost >= state->mlfq.boost_period)
-        {
-            schedule_event(state, NULL, EVENT_PRIORITY_BOOST, state->current_time);
-        }
     }
 
     calculate_metrics(state->processes, state->num_processes);
     print_results(state);
+
+    return 0;
 }
 

@@ -18,6 +18,7 @@ void init_scheduler(SchedulerState *state)
     state->current_process = NULL;
     state->gantt_chart = NULL;
     state->gantt_size = 0;
+    state->current_time = 0;
     state->event_queue = NULL;
 
     for (int i = 0; i < state->num_processes; i++)
@@ -25,6 +26,8 @@ void init_scheduler(SchedulerState *state)
         state->processes[i].remaining_time = state->processes[i].burst_time;
         state->processes[i].start_time = -1;
         state->processes[i].finish_time = -1;
+        state->processes[i].waiting_time = 0;
+        state->processes[i].turnaround_time = 0;
     }
 }
 
@@ -289,13 +292,27 @@ void schedule_event(SchedulerState *state, Process *p, EventType type, int event
     current->next = event;
 }
 
-void handle_quantum_expire(SchedulerState *state, Process *p)
+void handle_completion(SchedulerState *state, Process *p)
 {
-    // reduce remaining time by quantum
-    p->remaining_time -= state->rr_quantum;
+    if (!p || !state) 
+        return;
 
-    // put process back in queue
-    enqueue(&state->ready_queue, p);
+    p->finish_time = state->current_time;
+    p->remaining_time = 0;
+    
+    state->current_process = NULL;
+}
+
+void handle_quantum_expire(SchedulerState *state, Process *p, SchedulingAlgorithm algorithm)
+{
+    if (!p) 
+        return;
+
+    if (algorithm == MLFQ) {
+        enqueue_mlfq(&state->mlfq.queues[p->priority], p);
+    } else {
+        enqueue(&state->ready_queue, p);
+    }
 }
 
 void handle_priority_boost(SchedulerState *state)
