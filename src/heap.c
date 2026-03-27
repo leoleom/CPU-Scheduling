@@ -57,14 +57,19 @@ static void heapify_down(MinHeap *heap, int index, int (*cmp)(Process *, Process
 MinHeap *create_heap(int capacity)
 {
     if (capacity <= 0) {
+        fprintf(stderr, "Error: Invalid heap capacity %d.\n", capacity);
         return NULL; 
     }
 
     MinHeap *heap = malloc(sizeof(MinHeap));
-    if (!heap) return NULL;
+    if (!heap) {
+        perror("Failed to allocate MinHeap struct.");
+        return NULL;
+    }
 
     heap->process = malloc(capacity * sizeof(Process *));
     if (!heap->process) {
+        perror("Failed to allocate heap process array.");
         free(heap); 
         return NULL;
     }
@@ -78,6 +83,8 @@ MinHeap *create_heap(int capacity)
 // insert a process
 void heap_insert(MinHeap *heap, Process *proc, int (*cmp)(Process *, Process *))
 {
+    if (!heap || !proc) return;
+    
     if (heap->size == heap->capacity)
     {
         int new_capacity = heap->capacity * 2;

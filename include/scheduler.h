@@ -58,13 +58,13 @@ typedef struct Event
 } Event;
 
 // scheduling algo used in event
-typedef int SchedulingAlgorithm;
-
-#define FCFS 1
-#define SJF  2
-#define STCF 3
-#define RR   4
-#define MLFQ 5
+typedef enum {
+    FCFS = 1,
+    SJF,
+    STCF,
+    RR,
+    MLFQ
+} SchedulingAlgorithm;
 
 // initializations
 void init_scheduler(SchedulerState *state);

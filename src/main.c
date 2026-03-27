@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 {
 
     char *algorithm_str = NULL;
-    char *algorithm;
+    SchedulingAlgorithm algorithm;
     char *input = NULL;
     int quantum = 20;
 
@@ -32,13 +32,26 @@ int main(int argc, char *argv[])
 
     if (!algorithm_str || !input)
     {
-        printf("Usage: ./main --algorithm=FCFS --input=file.txt\n");
+        fprintf(stderr,"Usage: ./main --algorithm=FCFS --input=file.txt\n");
+        return 1;
+    }
+
+    // defense ulet daw
+    if (quantum <= 0) {
+        fprintf(stderr, "Error: Quantum must be a positive integer.\n");
         return 1;
     }
 
     SchedulerState state;
 
-    state.num_processes = load_processes(input, &state.processes);
+    // security personel for processes edi wow
+    int count = load_processes(input, &state.processes);
+    if (count <= 0) {
+        fprintf(stderr, "Error: Failed to load processes from %s.\n", input);
+        return 1;
+    }
+
+    state.num_processes = count;
 
     init_scheduler(&state);
 
@@ -71,6 +84,12 @@ int main(int argc, char *argv[])
             .boost_period = 300 // priority boost every 300 units (arbitrary)
         };
 
+        // handle error
+        if (config.queues > 3|| config.queues <= 0) {
+            fprintf(stderr, "Error: MLFQ must have between 1 and %d queues.\n", 3);
+            return 1;
+        }
+
         // initialize the MLFQ inside SchedulerState
         init_mlfq(&state.mlfq, &config);
     }
@@ -80,13 +99,11 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    simulate_scheduler(&state, algorithm);
-
     if (simulate_scheduler(&state, algorithm) == -1)
     {
         fprintf(stderr, "Simulation failed.\n");
         free(state.processes);
-        return ;
+        return 1;
     }
 
     printf("=== METRICS ===\n");

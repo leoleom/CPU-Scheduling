@@ -12,7 +12,6 @@ void init_scheduler(SchedulerState *state)
     state->gantt_chart = NULL;
     state->gantt_size = 0;
     state->event_queue = NULL;
-    
 
     for (int i = 0; i < state->num_processes; i++)
     {
@@ -22,14 +21,31 @@ void init_scheduler(SchedulerState *state)
     }
 }
 
-void init_mlfq(MLFQScheduler *sched, MLFQConfig *config) {
+void init_mlfq(MLFQScheduler *sched, MLFQConfig *config)
+{
+
+    // extra defense
+    if (!sched || !config || !config->time_quantum || !config->allotment)
+    {
+        fprintf(stderr, "Error: Invalid MLFQ configuration provided.\n");
+        return;
+    }
+
     sched->num_queues = config->queues;
     sched->boost_period = config->boost_period;
     sched->last_boost = 0;
 
     sched->queues = malloc(sizeof(MLFQQueue) * config->queues);
 
-    for (int i = 0; i < config->queues; i++) {
+    // safety check liwat kuno
+    if (!sched->queues)
+    {
+        fprintf(stderr, "Fatal: Could not allocate MLFQ queues.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < config->queues; i++)
+    {
         sched->queues[i].level = i;
         sched->queues[i].time_quantum = config->time_quantum[i];
         sched->queues[i].allotment = config->allotment[i];
@@ -41,7 +57,20 @@ void init_mlfq(MLFQScheduler *sched, MLFQConfig *config) {
 /* used for fcfs and rr */
 void enqueue(Queue *queue, Process *proc)
 {
+
+    // walang sawang check 'to bro
+    if (!queue || !proc)
+        return;
+
     Node *new_node = (Node *)malloc(sizeof(Node));
+
+    // another safety check :<
+    if (!new_node)
+    {
+        fprintf(stderr, "Fatal: Memory allocation failed for Queue Node.\n");
+        exit(EXIT_FAILURE);
+    }
+
     new_node->process = proc;
     new_node->next = NULL;
 
@@ -117,9 +146,6 @@ void handle_arrivals_queue(SchedulerState *state, int time)
         {
             enqueue(&state->ready_queue, p);
         }
-
-        if (p->start_time == -1)
-            p->start_time = time;
     }
 }
 
@@ -133,9 +159,6 @@ void handle_arrivals_stcf(SchedulerState *state, MinHeap *heap, int time)
         {
             heap_insert(heap, p, cmp_stcf);
         }
-
-        if (p->start_time == -1)
-            p->start_time = time;
     }
 
     // preempt if needed
@@ -160,25 +183,21 @@ void handle_arrivals_sjf(SchedulerState *state, MinHeap *heap, int time)
         {
             heap_insert(heap, p, cmp_sjf); // uses burst_time
         }
-        
-        if (p->start_time == -1)
-            p->start_time = time;
     }
 }
 
-void handle_arrivals_mlfq(SchedulerState *state, MLFQScheduler *sched, int time) {
-    for (int i = 0; i < state->num_processes; i++) {
+void handle_arrivals_mlfq(SchedulerState *state, MLFQScheduler *sched, int time)
+{
+    for (int i = 0; i < state->num_processes; i++)
+    {
         Process *p = &state->processes[i];
 
-        if (p->arrival_time == time) {
+        if (p->arrival_time == time)
+        {
             p->priority = 0;
             p->time_in_queue = 0;
             enqueue(&sched->queues[0], p);
-            
         }
-
-        if (p->start_time == -1)
-            p->start_time = time;
     }
 
     // boost priorities if needed
@@ -198,10 +217,10 @@ Event *pop_event(Event **event_queue)
     if (!event_queue || !*event_queue)
         return NULL;
 
-    Event *front = *event_queue;       // take the head (earliest event)
-    *event_queue = front->next;        // move queue forward
-    front->next = NULL;                // clean up dangling pointer
-    return front;                      // caller owns and frees this
+    Event *front = *event_queue; // take the head (earliest event)
+    *event_queue = front->next;  // move queue forward
+    front->next = NULL;          // clean up dangling pointer
+    return front;                // caller owns and frees this
 }
 
 void schedule_event(SchedulerState *state, Process *p, EventType type, int event_time)
