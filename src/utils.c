@@ -245,23 +245,30 @@ void handle_arrivals_sjf(SchedulerState *state, MinHeap *heap, int time)
 
 void handle_arrivals_mlfq(SchedulerState *state, MLFQScheduler *sched, int time)
 {
+    int arrived = 0;
     for (int i = 0; i < state->num_processes; i++)
     {
         Process *p = &state->processes[i];
-
         if (p->arrival_time == time)
         {
             p->priority = 0;
             p->time_in_queue = 0;
             enqueue_mlfq(&sched->queues[0], p);
+            arrived = 1;
+            printf("[DEBUG] T=%d: %s arrived\n", time, p->pid);
         }
     }
 
-    // preempt if higher-priority process exists
-    mlfq_check_preemption(state, sched);
-
-    // pick next process to run
-    mlfq_select_next_process(state, sched);
+    if (arrived) {
+        // If CPU is empty, start the process that just arrived
+        if (state->current_process == NULL) {
+            schedule_mlfq(state);
+        } 
+        // If someone is running, check if we need to preempt (optional but good)
+        else {
+            mlfq_check_preemption(state, sched);
+        }
+    }
 }
 
 // SIMULATOR ENGINE HELPERS
@@ -365,14 +372,6 @@ void handle_quantum_expire(SchedulerState *state, Process *p, SchedulingAlgorith
     if (!p) 
         return;
 
-    // update internal clock boss ass b****
-    int q = (algorithm == MLFQ) ? state->mlfq.queues[p->priority].time_quantum : state->rr_quantum;
-    
-    p->remaining_time -= q; 
-    if (algorithm == MLFQ) {
-        p->time_in_queue += q;
-    }
-
     if (algorithm != MLFQ)
         enqueue(&state->ready_queue, p);
 
@@ -381,24 +380,38 @@ void handle_quantum_expire(SchedulerState *state, Process *p, SchedulingAlgorith
 
 void handle_priority_boost(SchedulerState *state)
 {
+    if (!state) 
+        return;
+
     printf("[DEBUG] handle_priority_boost: boosting at time=%d\n", state->current_time);
-    if (state->current_process != NULL) {
+
+    // 1. Perform the boost
+    mlfq_priority_boost(&state->mlfq, state->current_time);
+    
+    if (state->current_process) {
         state->current_process->priority = 0;
         state->current_process->time_in_queue = 0;
+        enqueue_mlfq(&state->mlfq.queues[0], state->current_process);
+        state->current_process = NULL; 
     }
 
-    // perform the priority boost
-    mlfq_priority_boost(&state->mlfq, state->current_time);
+    // STRICT CHECK: Are there any processes actually left to run?
+    int processes_remaining = 0;
+    for (int i = 0; i < state->num_processes; i++) {
+        // A process is only "active" if it hasn't finished yet
+        if (state->processes[i].finish_time == -1) {
+            processes_remaining = 1;
+            break;
+        }
+    }
 
-    // preempt current process if a higher-priority process exists
-    mlfq_check_preemption(state, &state->mlfq);
-
-    // pick next process to run if CPU is idle
-    mlfq_select_next_process(state, &state->mlfq);
-
-    // schedule the next priority boost event
-    schedule_event(state, NULL, EVENT_PRIORITY_BOOST,
-                   state->current_time + state->mlfq.boost_period);
+    // Only schedule the NEXT boost if there's someone left to benefit from it
+    if (processes_remaining) {
+        int next_time = state->current_time + state->mlfq.boost_period;
+        schedule_event(state, NULL, EVENT_PRIORITY_BOOST, next_time);
+    } else {
+        printf("[DEBUG] No processes remaining. Ceasing priority boosts.\n");
+    }
 }
 
 void detect_convoy_effect(SchedulerState *state) {

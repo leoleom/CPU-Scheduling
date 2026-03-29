@@ -18,15 +18,61 @@ int simulate_scheduler(SchedulerState *state,
 
     while (state->event_queue != NULL)
     {
+        int work_left = 0;
+        if (state->current_process != NULL)
+        {
+            work_left = 1;
+        }
+        else
+        {
+            for (int i = 0; i < state->num_processes; i++)
+            {
+                if (state->processes[i].remaining_time > 0)
+                {
+                    work_left = 1;
+                    break;
+                }
+            }
+        }
+
+        // no one is running, IGNORE the next scheduled events
+        if (!work_left)
+        {
+            printf("[DEBUG] All processes finished at %d. Terminating loop.\n", state->current_time);
+            break;
+        }
+
         Event *current = pop_event(&state->event_queue);
-        if(!current)
+        if (!current)
             break;
 
+        if ((current->type == EVENT_QUANTUM_EXPIRE || current->type == EVENT_COMPLETION) &&
+            current->process != state->current_process)
+        {
+            free(current);
+            continue;
+        }
+
+        int delta = current->time - state->last_event_time;
         state->current_time = current->time;
+
+        // add the time
+        if (state->current_process != NULL && delta > 0)
+        {
+            state->current_process->remaining_time -= delta;
+
+            // In MLFQ, time_in_queue tracks how much of the ALLOTMENT was used
+            if (algorithm == MLFQ)
+            {
+                state->current_process->time_in_queue += delta;
+            }
+        }
+
         printf("[DEBUG] Processing event type %d at time %d\n", current->type, state->current_time);
         Process *running = state->current_process; // save currently running process
 
-        //fill gantt chart first before handling event
+        // fill gantt chart first before handling event
+
         for (int t = prev_time; t < state->current_time; t++)
         {
             if (state->current_process)
@@ -34,6 +80,7 @@ int simulate_scheduler(SchedulerState *state,
             else
                 gantt_add(t, '-');
         }
+
         prev_time = state->current_time;
 
         switch (current->type)
@@ -63,26 +110,36 @@ int simulate_scheduler(SchedulerState *state,
             break;
 
         case EVENT_COMPLETION:
-            printf("[DEBUG] Event: COMPLETION of process %s\n", current->process->pid);
-            if (current->process == state->current_process)
+            if (current->process != state->current_process)
             {
-                handle_completion(state, current->process);
-                printf("[DEBUG] Process %s finished at time %d\n", current->process->pid, state->current_time);
+                free(current);
+                continue;
             }
+            printf("[DEBUG] Event: COMPLETION of process %s\n", current->process->pid);
+
+            handle_completion(state, current->process);
+            state->current_process = NULL;
+            printf("[DEBUG] Process %s finished at time %d\n", current->process->pid, state->current_time);
+
             break;
 
         case EVENT_QUANTUM_EXPIRE:
-            printf("[DEBUG] Event: QUANTUM_EXPIRE for process %s\n", current->process->pid);
-            if (current->process == state->current_process)
+            if (current->process != state->current_process)
             {
-                handle_quantum_expire(state, current->process, algorithm);
-                if (algorithm == MLFQ)
-                {
-                    mlfq_adjust_priority(&state->mlfq, current->process);
-                    printf("[DEBUG] Process %s priority adjusted in MLFQ\n", current->process->pid);
-                }
-                state->current_process = NULL; // pick next process
+                free(current);
+                continue;
             }
+
+            printf("[DEBUG] Event: QUANTUM_EXPIRE for process %s\n", current->process->pid);
+
+            handle_quantum_expire(state, current->process, algorithm);
+            if (algorithm == MLFQ)
+            {
+                mlfq_adjust_priority(&state->mlfq, current->process);
+                printf("[DEBUG] Process %s priority adjusted in MLFQ\n", current->process->pid);
+            }
+            state->current_process = NULL; // pick next process
+
             break;
 
         case EVENT_PRIORITY_BOOST:
@@ -133,7 +190,6 @@ int simulate_scheduler(SchedulerState *state,
             else
                 printf("[DEBUG] No process scheduled at time %d\n", state->current_time);
         }
-
     }
 
     calculate_metrics(state->processes, state->num_processes);

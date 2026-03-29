@@ -52,9 +52,8 @@ Comparison run_algorithm(char *input, SchedulingAlgorithm algorithm, int quantum
     free(state.processes);
 
     if (algorithm == SJF || algorithm == STCF)
-    {
-        free (state.heap);
-    }
+        free(state.heap);
+
     if (algorithm == MLFQ)
         free(state.mlfq.queues);
 
