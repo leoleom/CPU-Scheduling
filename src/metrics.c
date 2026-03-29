@@ -2,9 +2,22 @@
 #include <stdio.h>
 
 void calculate_metrics(Process *processes, int n) {
+
+    if (!processes || n <= 0) {
+        printf("[DEBUG] calculate_metrics: no processes\n");
+        return;
+    }
+
+    printf("[DEBUG] calculate_metrics: calculating for %d processes\n", n);
+
     for (int i = 0; i < n; i++) {
         Process *p = &processes[i];
         
+        if (p->finish_time < 0) {
+            printf("[DEBUG] calculate_metrics WARNING: Process %s finish_time not set, using current_time=0\n", p->pid);
+            p->finish_time = 0; // temporary fix to avoid negative metrics
+        }
+
         // Turnaround time = Finish time - Arrival time
         p->turnaround_time = p->finish_time - p->arrival_time;
         
@@ -12,7 +25,21 @@ void calculate_metrics(Process *processes, int n) {
         p->waiting_time = p->turnaround_time - p->burst_time;
         
         // Response time = Start time - Arrival time
+        if (p->start_time >= 0){
         p->response_time = p->start_time - p->arrival_time;
+        } else {
+            p->response_time = -1; // process never started
+        }
+
+        printf("[DEBUG] Metrics for Process %s:\n", p->pid);
+        printf("  AT=%d, BT=%d, FT=%d, TT=%d, WT=%d, RT=%d\n",
+               p->arrival_time,
+               p->burst_time,
+               p->finish_time,
+               p->turnaround_time,
+               p->waiting_time,
+               p->response_time);
+
     }
 }
 
@@ -21,7 +48,7 @@ double calculate_average_turnaround(Process *processes, int n) {
     for (int i = 0; i < n; i++) {
         sum += processes[i].turnaround_time;
     }
-    return sum / n;
+    return (n==0) ? 0.0 : sum / n; // check division by 0
 }
 
 double calculate_average_waiting(Process *processes, int n) {
@@ -29,7 +56,7 @@ double calculate_average_waiting(Process *processes, int n) {
     for (int i = 0; i < n; i++) {
         sum += processes[i].waiting_time;
     }
-    return sum / n;
+    return (n==0) ? 0.0 : sum / n; // check division by 0
 }
 
 double calculate_average_response(Process *processes, int n) {
@@ -37,7 +64,7 @@ double calculate_average_response(Process *processes, int n) {
     for (int i = 0; i < n; i++) {
         sum += processes[i].response_time;
     }
-    return sum / n;
+    return (n==0) ? 0.0 : sum / n; // check division by 0
 }
 
 void print_process_metrics(Process p[], int n)
@@ -60,7 +87,8 @@ void print_process_metrics(Process p[], int n)
                p[i].response_time);
         puts("+---------+-------+-------+-------+-------+-------+-------+");
     }
-    printf("| Average |       |       |       | %3.1f | %3.1f | %3.1f |", (float)calculate_average_turnaround(p, n), (float)calculate_average_waiting(p, n), (float)calculate_average_response(p, n));
+    printf("| Average |       |       |       | %3.1f | %3.1f | %3.1f |", (float)calculate_average_turnaround(p, n), 
+    (float)calculate_average_waiting(p, n), (float)calculate_average_response(p, n));
 }
 
 void print_metrics_calculation(Process p[], int n)

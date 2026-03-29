@@ -25,6 +25,7 @@ int schedule_fcfs(SchedulerState *state)
     Process *p = node->process;
     free(node);
 
+    track_context_switch(state, p);
     state->current_process = p;
 
     // response time tracking

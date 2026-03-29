@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "scheduler.h"
+#include "mlfq.h"
 
 
 // INITIALIZATIONS
@@ -10,8 +11,12 @@ void init_scheduler(SchedulerState *state)
     if (!state) 
         return;
 
-        
+    printf("[DEBUG] init_scheduler: starting\n");
+
+    SchedulerState tmp = *state;  // save current fields
     memset(state, 0, sizeof(SchedulerState));
+    state->processes = tmp.processes; // restore pointer
+    state->num_processes = tmp.num_processes; 
 
     // defensive ulit bro
     while (state->event_queue != NULL) {
@@ -33,9 +38,11 @@ void init_scheduler(SchedulerState *state)
     state->gantt_size = 0;
     state->rr_quantum        = 0;
 
-    state->heap.process      = NULL;
-    state->heap.size         = 0;
-    state->heap.capacity     = 0;
+    // state->heap->process      = NULL;
+    // state->heap->size         = 0;
+    // state->heap->capacity     = 0;
+
+    state->heap = NULL;
 
     for (int i = 0; i < state->num_processes; i++)
     {
@@ -46,7 +53,12 @@ void init_scheduler(SchedulerState *state)
         state->processes[i].turnaround_time = 0;
         state->processes[i].priority = 0;
         state->processes[i].time_in_queue = 0;
+        printf("[DEBUG] init_scheduler: Process %s initialized, AT=%d, BT=%d\n",
+               state->processes[i].pid,
+               state->processes[i].arrival_time,
+               state->processes[i].burst_time);
     }
+        printf("[DEBUG] init_scheduler: complete\n");
 }
 
 void init_mlfq(MLFQScheduler *sched, MLFQConfig *config)
@@ -113,6 +125,7 @@ void enqueue(Queue *queue, Process *proc)
     }
 
     queue->size++;
+    printf("[DEBUG] enqueue: Process %s added to queue, new size=%d\n", proc->pid, queue->size);
 }
 
 Node *dequeue(Queue *queue)
@@ -129,6 +142,7 @@ Node *dequeue(Queue *queue)
     temp->next = NULL; // delete the reference
     queue->size--;
 
+    printf("[DEBUG] dequeue: Process %s removed from queue, new size=%d\n", temp->process->pid, queue->size);
     return temp;
 }
 
@@ -216,9 +230,15 @@ void handle_arrivals_sjf(SchedulerState *state, MinHeap *heap, int time)
     {
         Process *p = &state->processes[i];
 
-        if (p->arrival_time == time)
+        printf("[DEBUG] Checking process %s: AT=%d, start_time=%d, current_time=%d\n",
+       p->pid, p->arrival_time, p->start_time, time);
+        if (p->arrival_time <= time && p->start_time == -1)
         {
+            printf("[DEBUG] handle_arrivals_sjf: heap size before=%d\n", heap->size);
             heap_insert(heap, p, cmp_sjf); // uses burst_time
+            printf("[DEBUG] handle_arrivals_sjf: inserted %s, heap size after=%d\n", p->pid, heap->size);
+            //p -> start_time = -2; // mark as added to heap
+            printf("[DEBUG] handle_arrivals_sjf: Process %s added to heap at time %d\n", p->pid, time);
         }
     }
 }
@@ -247,19 +267,34 @@ void handle_arrivals_mlfq(SchedulerState *state, MLFQScheduler *sched, int time)
 // SIMULATOR ENGINE HELPERS
 
 void initialize_events(SchedulerState *state, SchedulingAlgorithm algorithm) {
-    if (!state || !state->processes) 
+    if (!state) {
+        printf("[DEBUG] initialize_events: state is NULL\n");
         return;
+    }
+    if (!state->processes) {
+        printf("[DEBUG] initialize_events: state->processes is NULL\n");
+        return;
+    }
+
+    printf("[DEBUG] initialize_events: num_processes=%d\n", state->num_processes);
 
     for (int i = 0; i < state->num_processes; i++) {
         Process *p = &state->processes[i];
+        printf("[DEBUG] Scheduling arrival for process %s at time %d\n", p->pid, p->arrival_time);
         schedule_event(state, p, EVENT_ARRIVAL, p->arrival_time);
     }
     
-    // for mlfq implementations 
     if (algorithm == MLFQ) {
         schedule_event(state, NULL, EVENT_PRIORITY_BOOST, state->mlfq.boost_period);
     }
-}
+
+    printf("[DEBUG] Event queue initialized\n");
+    Event *tmp = state->event_queue;
+    while (tmp) {
+        printf("  Event type=%d time=%d process=%s\n", tmp->type, tmp->time, tmp->process->pid);
+        tmp = tmp->next;
+    }
+} 
 
 Event *pop_event(Event **event_queue)
 {
@@ -306,6 +341,8 @@ void schedule_event(SchedulerState *state, Process *p, EventType type, int event
         current = current->next;
     }
 
+     printf("[DEBUG] schedule_event: Event type=%d for process %s at time=%d\n",
+           type, p ? p->pid : "-", event_time);
     // insert new event after current
     event->next = current->next;
     current->next = event;
@@ -320,6 +357,7 @@ void handle_completion(SchedulerState *state, Process *p)
     p->remaining_time = 0;
 
     state->current_process = NULL;
+    printf("[DEBUG] handle_completion: Process %s finished at time=%d\n", p->pid, state->current_time);
 }
 
 void handle_quantum_expire(SchedulerState *state, Process *p, SchedulingAlgorithm algorithm)
@@ -337,11 +375,13 @@ void handle_quantum_expire(SchedulerState *state, Process *p, SchedulingAlgorith
 
     if (algorithm != MLFQ)
         enqueue(&state->ready_queue, p);
+
+    printf("[DEBUG] handle_quantum_expire: Process %s remaining_time=%d\n", p->pid, p->remaining_time);
 }
 
 void handle_priority_boost(SchedulerState *state)
 {
-
+    printf("[DEBUG] handle_priority_boost: boosting at time=%d\n", state->current_time);
     if (state->current_process != NULL) {
         state->current_process->priority = 0;
         state->current_process->time_in_queue = 0;

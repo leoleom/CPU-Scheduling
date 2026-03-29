@@ -21,6 +21,7 @@ int schedule_mlfq(SchedulerState *state)
                 Process *p = node->process;
                 free(node);
 
+                track_context_switch(state, p);
                 state->current_process = p;
 
                 // Record start time if first execution
@@ -134,7 +135,10 @@ void mlfq_select_next_process(SchedulerState *state, MLFQScheduler *sched)
         if (sched->queues[i].size > 0)
         {
             Node *node = dequeue_mlfq(&sched->queues[i]);
-            state->current_process = node->process;
+            //state->current_process = node->process;
+            Process *next = node->process;
+            track_context_switch(state, next);
+            state->current_process = next;
             free(node);
             break;
         }

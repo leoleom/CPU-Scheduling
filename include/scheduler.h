@@ -50,7 +50,7 @@ typedef struct SchedulerState
     Process *processes; // Array of all processes
     int num_processes;  // Number of processes
     int current_time;   // Current simulation time
-
+    
     Queue ready_queue;
     Process *current_process; // current running process
     char *gantt_chart;
@@ -58,14 +58,16 @@ typedef struct SchedulerState
 
     int rr_quantum;
 
-    MinHeap heap;
+    MinHeap *heap;
 
     MLFQScheduler mlfq;
 
     Event *event_queue;
     int last_event_time;
     
-    // store metrics
+    Process *last_process; // Array of completed processes for metrics
+    int context_switches; // Count of context switches
+
 } SchedulerState;
 
 
@@ -103,5 +105,7 @@ int schedule_sjf(SchedulerState *state, MinHeap *heap);
 int schedule_stcf(SchedulerState *state, MinHeap *heap);
 int schedule_rr(SchedulerState *state, int quantum);
 int schedule_mlfq(SchedulerState *state);
+
+void track_context_switch(SchedulerState *state, Process *next_process);
 
 #endif

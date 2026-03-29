@@ -19,6 +19,7 @@ int schedule_sjf(SchedulerState *state, MinHeap *heap) {
 
     // pick shortest job from heap
     Process *shortest = heap_extract_min(heap, cmp_sjf);
+    track_context_switch(state, shortest);
     state->current_process = shortest;
 
     // record start time

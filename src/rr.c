@@ -23,6 +23,7 @@ int schedule_rr(SchedulerState *state, int quantum)
     Process *p = node->process;
     free(node);
 
+    track_context_switch(state, p);
     state->current_process = p;
 
     // Record first execution (response time)

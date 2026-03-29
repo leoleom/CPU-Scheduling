@@ -10,8 +10,8 @@ int schedule_stcf(SchedulerState *state, MinHeap *heap)
     if (!state || state->num_processes == 0)
         return -1;
     
-    if (state->current_process != NULL)
-        return 0;
+    // if (state->current_process != NULL)
+    //     return 0;
 
     // do nothing if heap is empty
     if (heap->size == 0)
@@ -19,6 +19,10 @@ int schedule_stcf(SchedulerState *state, MinHeap *heap)
 
     // pick shortest remaining process
     Process *shortest = heap_extract_min(heap, cmp_stcf);
+    if (state->current_process != shortest)
+    {
+        track_context_switch(state, shortest);
+    }
     state->current_process = shortest;
 
     // record start time
