@@ -16,6 +16,7 @@ int main(int argc, char *argv[])
     char *input = NULL;
     int quantum = 10;
     int compare_mode = 0;
+    char *command_processes = NULL;
 
     for (int i = 1; i < argc; i++)
     {
@@ -35,10 +36,14 @@ int main(int argc, char *argv[])
         {
             quantum = atoi(argv[i] + 10);
         }
+        else if (strncmp(argv[i], "--processes=", 12) == 0)
+        {
+            command_processes = argv[i] + 12;
+        }
     }
-    // quantum validation 
-    if (quantum <= 0)
-    {
+
+    // defense ulet daw
+    if (quantum <= 0) {
         fprintf(stderr, "Error: Quantum must be a positive integer.\n");
         return 1;
     }
@@ -48,25 +53,33 @@ int main(int argc, char *argv[])
         run_comparison(input, quantum);
         return 0;
     }
-    if (!algorithm_str || !input)
+    if (!algorithm_str || (!input && !command_processes))
     {
-        fprintf(stderr,"Usage: ./main --algorithm=FCFS --input=file.txt\n");
+        fprintf(stderr,"Example Usage: ./schedism --algorithm=FCFS --input=file.txt\n");
         return 1;
     }
 
-    // defense ulet daw
-    if (quantum <= 0) {
-        fprintf(stderr, "Error: Quantum must be a positive integer.\n");
-        return 1;
-    }
+
 
     SchedulerState state;
 
     // security personel for processes edi wow
-    int count = load_processes(input, &state.processes);
-    if (count <= 0) {
-        fprintf(stderr, "Error: Failed to load processes from %s.\n", input);
-        return 1;
+    // int count = load_processes(input, &state.processes);
+    // if (count <= 0) {
+    //     fprintf(stderr, "Error: Failed to load processes from %s.\n", input);
+    //     return 1;
+    // }
+
+    int count = 0;
+    if (command_processes)
+    {
+        count = load_command(command_processes, &state.processes);
+        printf("[DEBUG] Loaded %d processes from string\n", count);
+    }
+    else
+    {
+        count = load_processes(input, &state.processes);
+        printf("[DEBUG] Loaded %d processes from file '%s'\n", count, input);
     }
 
 
@@ -94,7 +107,7 @@ int main(int argc, char *argv[])
         state.heap = create_heap(count);
         if (!state.heap){
             fprintf(stderr, "Fatal: Heap allocation failed.\n");
-            free(state.heap->process);
+            //free(state.heap->process);
             free(state.processes);
             return 1;
         }
@@ -134,10 +147,9 @@ int main(int argc, char *argv[])
     for (int i = 0; i < state.num_processes; i++)
     {
         total_time += state.processes[i].burst_time;
-
-        gantt_init(total_time + 10);
-        printf("[DEBUG] Gantt chart initialized with size %d\n", total_time + 10);
     }
+    gantt_init(total_time + 10);
+    printf("[DEBUG] Gantt chart initialized with size %d\n", total_time + 10);
 
     printf("[DEBUG] Heap=%p, processes=%p, \n", (void*)state.heap, (void*)state.processes);
     if (simulate_scheduler(&state, algorithm) == -1)
