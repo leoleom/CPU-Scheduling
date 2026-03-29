@@ -24,6 +24,17 @@ int simulate_scheduler(SchedulerState *state,
 
         state->current_time = current->time;
         printf("[DEBUG] Processing event type %d at time %d\n", current->type, state->current_time);
+        Process *running = state->current_process; // save currently running process
+
+        //fill gantt chart first before handling event
+        for (int t = prev_time; t < state->current_time; t++)
+        {
+            if (state->current_process)
+                gantt_add(t, running->pid[0]);
+            else
+                gantt_add(t, '-');
+        }
+        prev_time = state->current_time;
 
         switch (current->type)
         {
@@ -123,15 +134,6 @@ int simulate_scheduler(SchedulerState *state,
                 printf("[DEBUG] No process scheduled at time %d\n", state->current_time);
         }
 
-        // --- Fill Gantt chart ---
-        for (int t = prev_time; t < state->current_time; t++)
-        {
-            if (state->current_process)
-                gantt_add(t, state->current_process->pid[0]);
-            else
-                gantt_add(t, '-');
-        }
-        prev_time = state->current_time;
     }
 
     calculate_metrics(state->processes, state->num_processes);
