@@ -65,9 +65,6 @@ int main(int argc, char *argv[])
     init_scheduler(&state);
     printf("[DEBUG] Scheduler initialized\n");
     
-    
-
-
 
     if (strcmp(algorithm_str, "FCFS") == 0)
     {
@@ -90,6 +87,9 @@ int main(int argc, char *argv[])
         // state.heap->size     = 0;
         printf("[DEBUG] Heap created with capacity %d\n", state.heap->capacity);
         //printf("[DEBUG] Heap allocated for %s with capacity %d\n", algorithm_str, count);
+    } else if (strcmp(algorithm_str, "RR") == 0) 
+    { 
+        algorithm = RR; state.rr_quantum = quantum; 
     }
     else if (strcmp(algorithm_str, "MLFQ") == 0)
     {
