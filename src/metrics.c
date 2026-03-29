@@ -8,13 +8,10 @@ void calculate_metrics(Process *processes, int n) {
         return;
     }
 
-    printf("[DEBUG] calculate_metrics: calculating for %d processes\n", n);
-
     for (int i = 0; i < n; i++) {
         Process *p = &processes[i];
         
         if (p->finish_time < 0) {
-            printf("[DEBUG] calculate_metrics WARNING: Process %s finish_time not set, using current_time=0\n", p->pid);
             p->finish_time = 0; // temporary fix to avoid negative metrics
         }
 
@@ -30,16 +27,6 @@ void calculate_metrics(Process *processes, int n) {
         } else {
             p->response_time = -1; // process never started
         }
-
-        printf("[DEBUG] Metrics for Process %s:\n", p->pid);
-        printf("  AT=%d, BT=%d, FT=%d, TT=%d, WT=%d, RT=%d\n",
-               p->arrival_time,
-               p->burst_time,
-               p->finish_time,
-               p->turnaround_time,
-               p->waiting_time,
-               p->response_time);
-
     }
 }
 
