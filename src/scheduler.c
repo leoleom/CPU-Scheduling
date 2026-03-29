@@ -85,67 +85,67 @@ int simulate_scheduler(SchedulerState *state,
 
         switch (current->type)
         {
-        case EVENT_ARRIVAL:
-            printf("[DEBUG] Event: ARRIVAL of process %s\n", current->process->pid);
-            switch (algorithm)
-            {
-            case FCFS:
-            case RR:
-                handle_arrivals_queue(state, state->current_time);
+            case EVENT_ARRIVAL:
+                printf("[DEBUG] Event: ARRIVAL of process %s\n", current->process->pid);
+                switch (algorithm)
+                {
+                case FCFS:
+                case RR:
+                    handle_arrivals_queue(state, state->current_time);
+                    break;
+                case SJF:
+                    handle_arrivals_sjf(state, state->heap, state->current_time);
+                    printf("[DEBUG] Heap size after arrivals: %d\n", state->heap->size);
+                    for (int i = 0; i < state->heap->size; i++)
+                        printf("  [DEBUG] Heap[%d] Process %c BT=%d\n", i, state->heap->process[i]->pid[0], state->heap->process[i]->burst_time);
+                    break;
+                case STCF:
+                    handle_arrivals_stcf(state, state->heap, state->current_time);
+                    break;
+                case MLFQ:
+                    handle_arrivals_mlfq(state, &state->mlfq, state->current_time);
+                    printf("[DEBUG] MLFQ ready queues after arrivals\n");
+                    break;
+                }
                 break;
-            case SJF:
-                handle_arrivals_sjf(state, state->heap, state->current_time);
-                printf("[DEBUG] Heap size after arrivals: %d\n", state->heap->size);
-                for (int i = 0; i < state->heap->size; i++)
-                    printf("  [DEBUG] Heap[%d] Process %c BT=%d\n", i, state->heap->process[i]->pid[0], state->heap->process[i]->burst_time);
+
+            case EVENT_COMPLETION:
+                if (current->process != state->current_process)
+                {
+                    free(current);
+                    continue;
+                }
+                printf("[DEBUG] Event: COMPLETION of process %s\n", current->process->pid);
+
+                handle_completion(state, current->process);
+                state->current_process = NULL;
+                printf("[DEBUG] Process %s finished at time %d\n", current->process->pid, state->current_time);
+
                 break;
-            case STCF:
-                handle_arrivals_stcf(state, state->heap, state->current_time);
+
+            case EVENT_QUANTUM_EXPIRE:
+                if (current->process != state->current_process)
+                {
+                    free(current);
+                    continue;
+                }
+
+                printf("[DEBUG] Event: QUANTUM_EXPIRE for process %s\n", current->process->pid);
+
+                handle_quantum_expire(state, current->process, algorithm);
+                if (algorithm == MLFQ)
+                {
+                    mlfq_adjust_priority(&state->mlfq, current->process);
+                    printf("[DEBUG] Process %s priority adjusted in MLFQ\n", current->process->pid);
+                }
+                state->current_process = NULL; // pick next process
+
                 break;
-            case MLFQ:
-                handle_arrivals_mlfq(state, &state->mlfq, state->current_time);
-                printf("[DEBUG] MLFQ ready queues after arrivals\n");
+
+            case EVENT_PRIORITY_BOOST:
+                printf("[DEBUG] Event: PRIORITY_BOOST at time %d\n", state->current_time);
+                handle_priority_boost(state);
                 break;
-            }
-            break;
-
-        case EVENT_COMPLETION:
-            if (current->process != state->current_process)
-            {
-                free(current);
-                continue;
-            }
-            printf("[DEBUG] Event: COMPLETION of process %s\n", current->process->pid);
-
-            handle_completion(state, current->process);
-            state->current_process = NULL;
-            printf("[DEBUG] Process %s finished at time %d\n", current->process->pid, state->current_time);
-
-            break;
-
-        case EVENT_QUANTUM_EXPIRE:
-            if (current->process != state->current_process)
-            {
-                free(current);
-                continue;
-            }
-
-            printf("[DEBUG] Event: QUANTUM_EXPIRE for process %s\n", current->process->pid);
-
-            handle_quantum_expire(state, current->process, algorithm);
-            if (algorithm == MLFQ)
-            {
-                mlfq_adjust_priority(&state->mlfq, current->process);
-                printf("[DEBUG] Process %s priority adjusted in MLFQ\n", current->process->pid);
-            }
-            state->current_process = NULL; // pick next process
-
-            break;
-
-        case EVENT_PRIORITY_BOOST:
-            printf("[DEBUG] Event: PRIORITY_BOOST at time %d\n", state->current_time);
-            handle_priority_boost(state);
-            break;
         }
 
         state->last_event_time = state->current_time;
@@ -181,7 +181,7 @@ int simulate_scheduler(SchedulerState *state,
                 fprintf(stderr, "[DEBUG] Scheduler error: failed to schedule next process "
                                 "(algorithm=%d, time=%d)\n",
                         algorithm, state->current_time);
-                break;
+                return -1;
             }
 
             if (state->current_process)
