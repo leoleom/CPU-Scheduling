@@ -21,33 +21,43 @@ int schedule_mlfq(SchedulerState *state)
                 Process *p = node->process;
                 free(node);
 
-                track_context_switch(state, p);
                 state->current_process = p;
+                track_context_switch(state, p);
 
-                // Record start time if first execution
+                // set response time (start_time) only on the first run
                 if (p->start_time == -1)
                     p->start_time = state->current_time;
 
-                // Schedule either completion or quantum expiration
                 int q = sched->queues[i].time_quantum;
-                int remaining = p->remaining_time;
+                int allotment = sched->queues[i].allotment;
 
-                if (q > 0 && remaining > q) // quantum-limited
-                {
-                    schedule_event(state, p, EVENT_QUANTUM_EXPIRE,
-                                   state->current_time + q);
-                }
-                else // process will finish before quantum expires
-                {
-                    schedule_event(state, p, EVENT_COMPLETION,
-                                   state->current_time + remaining);
-                }
+                // calculate how much time left in priority
+                int rem_allotment = (allotment == -1) ? p->remaining_time : (allotment - p->time_in_queue);
 
-                break; // CPU now occupied
+                // determine run time
+                int run_time = p->remaining_time;
+                if (q != -1 && q < run_time)
+                    run_time = q;
+                if (allotment != -1 && rem_allotment < run_time)
+                    run_time = rem_allotment;
+
+                // ensure run_time is at least 1 tick
+                if (run_time <= 0)
+                {
+                    schedule_event(state, p, EVENT_COMPLETION, state->current_time);
+                }
+                else
+                {
+                    int event_time = state->current_time + run_time;
+                    if (run_time >= p->remaining_time)
+                        schedule_event(state, p, EVENT_COMPLETION, event_time);
+                    else
+                        schedule_event(state, p, EVENT_QUANTUM_EXPIRE, event_time);
+                }
+                return 0;
             }
         }
     }
-
     return 0;
 }
 
@@ -61,7 +71,7 @@ void mlfq_adjust_priority(MLFQScheduler *scheduler, Process *p)
     MLFQQueue *current_queue = &scheduler->queues[p->priority];
 
     // Check if process exhausted its allotment
-    if (p->time_in_queue >= current_queue->allotment)
+    if (p->time_in_queue >= current_queue->allotment && current_queue->allotment != -1)
     {
         // Demote to lower priority
         if (p->priority < scheduler->num_queues - 1)
@@ -73,7 +83,6 @@ void mlfq_adjust_priority(MLFQScheduler *scheduler, Process *p)
 
     // Allotment not exhausted, put back in same queue
     enqueue_mlfq(&scheduler->queues[p->priority], p);
-
 }
 
 void mlfq_priority_boost(MLFQScheduler *scheduler, int current_time)
@@ -103,8 +112,6 @@ void mlfq_check_preemption(SchedulerState *state, MLFQScheduler *sched)
     if (state->current_process == NULL)
         return;
 
-    int delta = state->current_time - state->last_event_time;
-
     for (int i = 0; i < state->current_process->priority; i++)
     {
         // if a higher-priority queue has a process, preempt current process
@@ -112,10 +119,6 @@ void mlfq_check_preemption(SchedulerState *state, MLFQScheduler *sched)
         {
 
             Process *p = state->current_process;
-
-            // update based on delta
-            p->remaining_time -= delta;
-            p->time_in_queue += delta;
 
             // put the running process back into its queue
             enqueue_mlfq(&sched->queues[p->priority], p);
@@ -135,7 +138,7 @@ void mlfq_select_next_process(SchedulerState *state, MLFQScheduler *sched)
         if (sched->queues[i].size > 0)
         {
             Node *node = dequeue_mlfq(&sched->queues[i]);
-            //state->current_process = node->process;
+            // state->current_process = node->process;
             Process *next = node->process;
             track_context_switch(state, next);
             state->current_process = next;

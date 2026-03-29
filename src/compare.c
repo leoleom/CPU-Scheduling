@@ -23,11 +23,17 @@ Comparison run_algorithm(char *input, SchedulingAlgorithm algorithm, int quantum
 
     if (algorithm == SJF || algorithm == STCF)
     {
+<<<<<<< HEAD
         state.heap = create_heap(count);
         if (!state.heap) {
         fprintf(stderr, "Heap allocation failed\n");
         exit(1);
         }
+=======
+        state.heap->process = malloc(count * sizeof(Process *));
+        state.heap->capacity = count;
+        state.heap->size = 0;
+>>>>>>> e4946f7 (fix: resolve MLFQ timeline drift and infinite boost loops)
     }
     if (algorithm == MLFQ)
     {
@@ -52,9 +58,14 @@ Comparison run_algorithm(char *input, SchedulingAlgorithm algorithm, int quantum
     free(state.processes);
 
     if (algorithm == SJF || algorithm == STCF)
+<<<<<<< HEAD
     {
         free (state.heap);
     }
+=======
+        free(state.heap->process);
+
+>>>>>>> e4946f7 (fix: resolve MLFQ timeline drift and infinite boost loops)
     if (algorithm == MLFQ)
         free(state.mlfq.queues);
 
