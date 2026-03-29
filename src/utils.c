@@ -385,7 +385,7 @@ void handle_priority_boost(SchedulerState *state)
 
     printf("[DEBUG] handle_priority_boost: boosting at time=%d\n", state->current_time);
 
-    // 1. Perform the boost
+    // perform boost
     mlfq_priority_boost(&state->mlfq, state->current_time);
     
     if (state->current_process) {
@@ -395,7 +395,7 @@ void handle_priority_boost(SchedulerState *state)
         state->current_process = NULL; 
     }
 
-    // STRICT CHECK: Are there any processes actually left to run?
+    // check for processes
     int processes_remaining = 0;
     for (int i = 0; i < state->num_processes; i++) {
         // A process is only "active" if it hasn't finished yet
@@ -405,7 +405,7 @@ void handle_priority_boost(SchedulerState *state)
         }
     }
 
-    // Only schedule the NEXT boost if there's someone left to benefit from it
+    // only boost if there is still processes
     if (processes_remaining) {
         int next_time = state->current_time + state->mlfq.boost_period;
         schedule_event(state, NULL, EVENT_PRIORITY_BOOST, next_time);
