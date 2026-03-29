@@ -8,8 +8,9 @@ typedef struct {
     double avg_wt;
     double avg_rt;
     int context_switches;
-} Result;
+} Comparison;
 
-Result run_algorithm(char *input, SchedulingAlgorithm algorithm, int quantum);
+Comparison run_algorithm(char *input, SchedulingAlgorithm algorithm, int quantum);
+void run_comparison(char *input, int quantum);
 
 #endif

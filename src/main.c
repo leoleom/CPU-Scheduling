@@ -15,9 +15,14 @@ int main(int argc, char *argv[])
     SchedulingAlgorithm algorithm;
     char *input = NULL;
     int quantum = 10;
+    int compare_mode = 0;
 
     for (int i = 1; i < argc; i++)
     {
+         if (strcmp(argv[i], "--compare") == 0)
+        {
+            compare_mode = 1;
+        }
         if (strncmp(argv[i], "--algorithm=", 12) == 0)
         {
             algorithm_str = argv[i] + 12;
@@ -31,7 +36,18 @@ int main(int argc, char *argv[])
             quantum = atoi(argv[i] + 10);
         }
     }
+    // quantum validation 
+    if (quantum <= 0)
+    {
+        fprintf(stderr, "Error: Quantum must be a positive integer.\n");
+        return 1;
+    }
 
+    if (compare_mode)
+    {
+        run_comparison(input, quantum);
+        return 0;
+    }
     if (!algorithm_str || !input)
     {
         fprintf(stderr,"Usage: ./main --algorithm=FCFS --input=file.txt\n");
@@ -75,18 +91,14 @@ int main(int argc, char *argv[])
         algorithm = (strcmp(algorithm_str, "SJF") == 0) ? SJF : STCF;
 
         // Allocate heap for SJF/STCF
-        //state.heap->process  = malloc(count * sizeof(Process *));
         state.heap = create_heap(count);
-        //if (!state.heap->process) 
         if (!state.heap){
             fprintf(stderr, "Fatal: Heap allocation failed.\n");
+            free(state.heap->process);
             free(state.processes);
             return 1;
         }
-        // state.heap->capacity = count;
-        // state.heap->size     = 0;
         printf("[DEBUG] Heap created with capacity %d\n", state.heap->capacity);
-        //printf("[DEBUG] Heap allocated for %s with capacity %d\n", algorithm_str, count);
     } else if (strcmp(algorithm_str, "RR") == 0) 
     { 
         algorithm = RR; state.rr_quantum = quantum; 
@@ -118,13 +130,16 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-        int total_time = 0;
+    int total_time = 0;
     for (int i = 0; i < state.num_processes; i++)
+    {
         total_time += state.processes[i].burst_time;
 
-      gantt_init(total_time + 10);
-       printf("[DEBUG] Gantt chart initialized with size %d\n", total_time + 10);
+        gantt_init(total_time + 10);
+        printf("[DEBUG] Gantt chart initialized with size %d\n", total_time + 10);
+    }
 
+    printf("[DEBUG] Heap=%p, processes=%p, \n", (void*)state.heap, (void*)state.processes);
     if (simulate_scheduler(&state, algorithm) == -1)
     {
         fprintf(stderr, "Simulation failed.\n");
@@ -133,14 +148,11 @@ int main(int argc, char *argv[])
     }
       printf("[DEBUG] Scheduler simulation completed\n");
 
-    printf("\n=== GANTT CHART ===\n");
     gantt_print(state.current_time);
     gantt_free();
 
-    printf("=== METRICS ===\n");
     print_process_metrics(state.processes, state.num_processes);
 
-    printf("\n=== DETAILED CALCULATION ===\n");
     print_metrics_calculation(state.processes, state.num_processes);
 
     if (algorithm == MLFQ)
