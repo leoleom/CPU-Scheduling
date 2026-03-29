@@ -107,5 +107,6 @@ int schedule_rr(SchedulerState *state, int quantum);
 int schedule_mlfq(SchedulerState *state);
 
 void track_context_switch(SchedulerState *state, Process *next_process);
+void detect_convoy_effect(SchedulerState *state);
 
 #endif

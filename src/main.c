@@ -152,7 +152,9 @@ int main(int argc, char *argv[])
     gantt_free();
 
     print_process_metrics(state.processes, state.num_processes);
-
+    if (algorithm == FCFS) {
+        detect_convoy_effect(&state);
+    }
     print_metrics_calculation(state.processes, state.num_processes);
 
     if (algorithm == MLFQ)
