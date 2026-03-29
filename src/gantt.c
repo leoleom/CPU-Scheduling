@@ -30,117 +30,6 @@ void gantt_add(int time, char pid) {
     gantt[time] = pid;
 }
 
-// void gantt_print(int n)
-// {
-//      if (!gantt || n <= 0)
-//         return;
-//     int i, j;
-
-//     if (n <= 50)
-//     {
-//         i = 0;
-//         while (i < n)
-//         {
-//             char current = gantt[i];
-
-//             printf("[");
-
-//             while (i < n && gantt[i] == current)
-//             {
-//                 printf("%c", current);
-//                 i++;
-//             }
-
-//             printf("]");
-//         }
-
-//         printf("\n");
-
-//         i = 0;
-//         int time = 0;
-
-//         printf("0");
-
-//         while (i < n)
-//         {
-//             char current = gantt[i];
-//             int count = 0;
-
-//             while (i < n && gantt[i] == current)
-//             {
-//                 i++;
-//                 count++;
-//             }
-
-//             time += count;
-
-//             printf("     %d", time);
-//         }
-
-//         printf("\n");
-//         return;
-//     }
-
-//     int scale = n / 50;
-//     if (scale < 1) scale = 1;
-
-//     printf("Scale: 1 block = %d time units\n\n", scale);
-
-//     //scaled
-//     i = 0;
-//     int time = 0;
-
-//     while (i < n)
-//     {
-//         char current = gantt[i];
-//         int count = 0;
-
-//         while (i < n && gantt[i] == current)
-//         {
-//             i++;
-//             count++;
-//         }
-
-//         if (count == 0)
-//             continue;
-
-//         printf("[");
-
-//         int blocks = (count + scale - 1) / scale;
-
-//         for (j = 0; j < blocks; j++)
-//             printf("%c", current);
-
-//         printf("]");
-
-//         time += count;
-//     }
-
-//     printf("\n");
-
-//     i = 0;
-//     time = 0;
-
-//     printf("0");
-
-//     while (i < n)
-//     {
-//         char current = gantt[i];
-//         int count = 0;
-
-//         while (i < n && gantt[i] == current)
-//         {
-//             i++;
-//             count++;
-//         }
-
-//         time += count;
-
-//         printf("     %d", time);
-//     }
-
-//     printf("\n");
-// }
 void gantt_print(int n)
 {
     if (!gantt || n <= 0)
@@ -152,6 +41,19 @@ void gantt_print(int n)
         printf("Scale: 1 block = %d time units\n\n", scale);
 
     int i = 0;
+
+    //poper alignment for time markers
+    int *positions = malloc(sizeof(int) * n); //store position of [
+    int *times = malloc(sizeof(int) * n); //store time values
+    int pos_count = 0;
+
+    int opening_pos = 0; // [ position tracker
+    int time = 0;
+
+    if (!positions || !times) {
+    printf("Memory allocation failed\n");
+    return;
+    }
 
     // TOP BAR
     while (i < n)
@@ -167,36 +69,66 @@ void gantt_print(int n)
 
         int blocks = (count + scale - 1) / scale;
 
+        // record [ position
+        positions[pos_count] = opening_pos;
+        times[pos_count] = time;
+        pos_count++;
+
         printf("[");
+        opening_pos++;
         for (int j = 0; j < blocks; j++)
+        {
             printf("%c", current);
+            opening_pos++;
+        }
         printf("]");
+        opening_pos++;  
+        time += count;
     }
+
+    // last time marker
+    positions[pos_count] = opening_pos;
+    times[pos_count] = time;
+    pos_count++;
 
     printf("\n");
 
     // TIME MARKERS
-    i = 0;
-    int time = 0;
+    int printed_time = 0;
 
-    printf("0");
-
-    while (i < n)
+    for (int p = 0; p < pos_count; p++)
     {
-        char current = gantt[i];
-        int count = 0;
+        int target = positions[p];
 
-        while (i < n && gantt[i] == current)
+        // print spaces until the position of the time marker
+        while (printed_time < target)
         {
-            i++;
-            count++;
+            printf(" ");
+            printed_time++;
         }
 
-        time += count;
-        printf("     %d", time);
+        printf("%d", times[p]);
+        printed_time += snprintf(NULL, 0, "%d", times[p]); // move printed_time forward by the number of digits
     }
 
     printf("\n");
+
+    // while (i < n)
+    // {
+    //     char current = gantt[i];
+    //     int count = 0;
+
+    //     while (i < n && gantt[i] == current)
+    //     {
+    //         i++;
+    //         count++;
+    //     }
+
+    //     time += count;
+    //     printf("     %d", time);
+    // }
+
+    // printf("\n");
 }
 
 void gantt_free()
