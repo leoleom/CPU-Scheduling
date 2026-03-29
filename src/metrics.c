@@ -70,29 +70,35 @@ double calculate_average_response(Process *processes, int n) {
 void print_process_metrics(Process p[], int n)
 {
     int i;
-
-    puts("+---------+-------+-------+-------+-------+-------+-------+");
-    puts("| Process |   AT  |   BT  |   FT  |   TT  |   WT  |   RT  |");
-    puts("+---------+-------+-------+-------+-------+-------+-------+");
+    printf("\n=== METRICS ===\n");
+    printf("\n%-8s | %-10s | %-10s | %-10s | %-10s | %-10s | %-10s\n",
+       "Process", "AT", "BT", "FT", "TT", "WT", "RT");
+    printf("-----------------------------------------------------------------------------------------\n");
 
     for(i = 0; i < n; i++)
     {
-        printf("| %7s |  %3d  |  %3d  |  %3d  |  %3d  |  %3d  |  %3d  |\n",
-               p[i].pid,
-               p[i].arrival_time,
-               p[i].burst_time,
-               p[i].finish_time,
-               p[i].turnaround_time,
-               p[i].waiting_time,
-               p[i].response_time);
-        puts("+---------+-------+-------+-------+-------+-------+-------+");
+        printf("%-8s | %-10.1f | %-10.1f | %-10.1f | %-10.1f | %-10.1f | %-10.1f\n",
+            p[i].pid,
+            (float)p[i].arrival_time,
+            (float)p[i].burst_time,
+            (float)p[i].finish_time,
+            (float)p[i].turnaround_time,
+            (float)p[i].waiting_time,
+            (float)p[i].response_time);
     }
-    printf("| Average |       |       |       | %3.1f | %3.1f | %3.1f |", (float)calculate_average_turnaround(p, n), 
-    (float)calculate_average_waiting(p, n), (float)calculate_average_response(p, n));
+
+    printf("-----------------------------------------------------------------------------------------\n");
+
+    printf("%-8s | %-10s | %-10s | %-10s | %-10.1f | %-10.1f | %-10.1f\n",
+        "Average", "", "", "",
+        (float)calculate_average_turnaround(p, n),
+        (float)calculate_average_waiting(p, n),
+        (float)calculate_average_response(p, n));
 }
 
 void print_metrics_calculation(Process p[], int n)
 {
+    printf("\n=== DETAILED CALCULATION ===\n");
     int i;
     for(i = 0; i < n; i++)
     {

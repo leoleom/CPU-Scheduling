@@ -37,6 +37,7 @@ void gantt_print(int n)
 
     int scale = (n > 50) ? (n + 49) / 50 : 1;
 
+    printf("\n=== GANTT CHART ===\n");
     if (scale > 1)
         printf("Scale: 1 block = %d time units\n\n", scale);
 
@@ -112,23 +113,6 @@ void gantt_print(int n)
     }
 
     printf("\n");
-
-    // while (i < n)
-    // {
-    //     char current = gantt[i];
-    //     int count = 0;
-
-    //     while (i < n && gantt[i] == current)
-    //     {
-    //         i++;
-    //         count++;
-    //     }
-
-    //     time += count;
-    //     printf("     %d", time);
-    // }
-
-    // printf("\n");
 }
 
 void gantt_free()
