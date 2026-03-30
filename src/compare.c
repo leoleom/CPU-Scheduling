@@ -66,6 +66,7 @@ void run_comparison(char *input, int quantum)
     Comparison sjf  = run_algorithm(input, SJF, quantum);
     Comparison stcf = run_algorithm(input, STCF, quantum);
     Comparison rr   = run_algorithm(input, RR, quantum);
+    Comparison mlfq = run_algorithm(input, MLFQ, quantum);
 
     printf("\n=== ALGORITHM COMPARISON ===\n");
 
@@ -85,4 +86,6 @@ void run_comparison(char *input, int quantum)
 
     printf("RR (q=%d) | %-10.1f | %-10.1f | %-10.1f | %-10d\n",
         quantum, (float)rr.avg_tt, (float)rr.avg_wt, (float)rr.avg_rt, rr.context_switches);
+    printf("MLFQ      | %-10.1f | %-10.1f | %-10.1f | %-10d\n",
+        (float)mlfq.avg_tt, (float)mlfq.avg_wt, (float)mlfq.avg_rt, mlfq.context_switches);
 }

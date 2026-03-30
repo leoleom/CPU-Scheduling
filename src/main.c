@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     char *algorithm_str = NULL;
     SchedulingAlgorithm algorithm;
     char *input = NULL;
-    int quantum = 10;
+    int quantum = 30;
     int compare_mode = 0;
     char *command_processes = NULL;
 
@@ -41,15 +41,9 @@ int main(int argc, char *argv[])
             command_processes = argv[i] + 12;
         }
     }
-<<<<<<< HEAD
-
-    // defense ulet daw
-    if (quantum <= 0) {
-=======
     // quantum validation
     if (quantum <= 0)
     {
->>>>>>> 2d01773abe96199884a45fbb672e2f3dde75a717
         fprintf(stderr, "Error: Quantum must be a positive integer.\n");
         return 1;
     }
@@ -73,13 +67,6 @@ int main(int argc, char *argv[])
     }
 
     SchedulerState state;
-
-    // security personel for processes edi wow
-    // int count = load_processes(input, &state.processes);
-    // if (count <= 0) {
-    //     fprintf(stderr, "Error: Failed to load processes from %s.\n", input);
-    //     return 1;
-    // }
 
     int count = 0;
     if (command_processes)
