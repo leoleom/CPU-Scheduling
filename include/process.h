@@ -14,8 +14,9 @@ typedef struct {
     int response_time;
     int priority;        // For MLFQ
     int time_in_queue;   // For MLFQ allotment tracking
-    int was_preempted;
-
+    int was_preempted;  
+    int last_start_time; // For accurate remaining time calculation on preemption
+    
 } Process;
 
 int load_processes(const char *filename, Process **processes);

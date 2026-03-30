@@ -205,15 +205,17 @@ void handle_arrivals_stcf(SchedulerState *state, MinHeap *heap, int time)
         Process *shortest = heap_peek(heap);
         if (shortest->remaining_time < state->current_process->remaining_time)
         {
-            int delta = state->current_time - state->last_event_time;
-            state->current_process->remaining_time -= delta;
+            printf("DEBUG: %s last_start=%d, now=%d, delta=%d\n",
+            shortest->pid,
+            shortest->last_start_time,
+            state->current_time,
+            state->current_time - shortest->last_start_time);
 
             printf("Process %s was preempted at t=%d (remaining: %d)\n",
             state->current_process->pid,
             state->current_time,
             state->current_process->remaining_time);
 
-           
             state->current_process->was_preempted = 1; //marked as preempted
 
             heap_insert(heap, state->current_process, cmp_stcf);
@@ -240,12 +242,16 @@ void handle_arrivals_mlfq(SchedulerState *state, MLFQScheduler *sched, int time)
     for (int i = 0; i < state->num_processes; i++)
     {
         Process *p = &state->processes[i];
+        char buff[100];
         if (p->arrival_time == time)
         {
             p->priority = 0;
             p->time_in_queue = 0;
             enqueue_mlfq(&sched->queues[0], p);
             arrived = 1;
+            sprintf(buff, "Process %s enters Q%d", p->pid, p->priority);
+            int current_time = state->current_time;
+            log_mlfq_event(current_time, buff);
         }
     }
 
@@ -297,6 +303,19 @@ Event *pop_event(Event **event_queue)
     return front;                // caller owns and frees this
 }
 
+// helper: define priority (lower = higher priority)
+int get_priority(EventType t)
+{
+    switch (t)
+    {
+        case EVENT_ARRIVAL:         return 0; // HIGHEST
+        case EVENT_PRIORITY_BOOST:  return 1;
+        case EVENT_COMPLETION:      return 2;
+        case EVENT_QUANTUM_EXPIRE:  return 3; // LOWEST
+        default:                   return 4;
+    }
+}
+
 void schedule_event(SchedulerState *state, Process *p, EventType type, int event_time)
 {
     Event *event = malloc(sizeof(Event));
@@ -318,7 +337,9 @@ void schedule_event(SchedulerState *state, Process *p, EventType type, int event
     }
 
     // check if new event should go at the front
-    if (event->time < state->event_queue->time)
+    if (event->time < state->event_queue->time ||
+        (event->time == state->event_queue->time &&
+         get_priority(type) < get_priority(state->event_queue->type)))
     {
         event->next = state->event_queue;
         state->event_queue = event;
@@ -326,8 +347,16 @@ void schedule_event(SchedulerState *state, Process *p, EventType type, int event
     }
 
     Event *current = state->event_queue;
-    while (current->next != NULL && current->next->time <= event->time)
+
+    while (current->next != NULL)
     {
+        if (current->next->time > event->time)
+            break;
+
+        if (current->next->time == event->time &&
+            get_priority(type) < get_priority(current->next->type))
+            break;
+
         current = current->next;
     }
     // insert new event after current
@@ -361,14 +390,23 @@ void handle_priority_boost(SchedulerState *state)
     if (!state) 
         return;
 
+    MLFQScheduler *sched = &state->mlfq;
     // perform boost
-    mlfq_priority_boost(&state->mlfq, state->current_time);
+    mlfq_priority_boost(sched, state->current_time);
     
-    if (state->current_process) {
-        state->current_process->priority = 0;
-        state->current_process->time_in_queue = 0;
-        enqueue_mlfq(&state->mlfq.queues[0], state->current_process);
-        state->current_process = NULL; 
+    // if (state->current_process) {
+    //     state->current_process->priority = 0;
+    //     state->current_process->time_in_queue = 0;
+    //     enqueue_mlfq(&state->mlfq.queues[0], state->current_process);
+    //     state->current_process = NULL; 
+    // }
+
+    if (state->current_process){
+        Process *p = state -> current_process;
+        p->priority = 0;
+        p->time_in_queue = 0;
+        enqueue_mlfq(&state->mlfq.queues[0], p);
+        state->current_process = NULL;
     }
 
     // check for processes
@@ -427,4 +465,9 @@ const char* get_algorithm_name(SchedulingAlgorithm algo)
         case MLFQ: return "MLFQ";
         default:   return "Unknown";
     }
+}
+
+void log_mlfq_event(int time, const char *msg)
+{
+    printf("t=%-4d: %s\n", time, msg);
 }
