@@ -15,6 +15,9 @@ int simulate_scheduler(SchedulerState *state,
     int prev_time = state->last_event_time;
 
     printf("Simulation started for algorithm %s\n", get_algorithm_name(algorithm));
+    if (algorithm == MLFQ) {
+        printf("\n=== Execution Trace ===\n");
+    }
 
     while (state->event_queue != NULL)
     {
@@ -123,7 +126,7 @@ int simulate_scheduler(SchedulerState *state,
                 handle_quantum_expire(state, current->process, algorithm);
                 if (algorithm == MLFQ)
                 {
-                    mlfq_adjust_priority(&state->mlfq, current->process);
+                    mlfq_adjust_priority(&state->mlfq, current->process, state->current_time);
                 }
                 state->current_process = NULL; // pick next process
 
@@ -136,7 +139,7 @@ int simulate_scheduler(SchedulerState *state,
 
         state->last_event_time = state->current_time;
         free(current);
-
+        
         if (state->current_process == NULL)
         {
             int sched_result = 0;

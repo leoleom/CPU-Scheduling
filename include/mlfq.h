@@ -37,7 +37,10 @@ typedef struct SchedulerState SchedulerState;
 void mlfq_check_preemption(SchedulerState *state, MLFQScheduler *sched);
 void mlfq_select_next_process(SchedulerState *state, MLFQScheduler *sched);
 
-void mlfq_adjust_priority(MLFQScheduler *scheduler, Process *p);
+void mlfq_adjust_priority(MLFQScheduler *scheduler, Process *p, int current_time);
 void mlfq_priority_boost(MLFQScheduler *scheduler, int current_time);
+
+MLFQConfig load_mlfq_config(const char *filename);
+void print_mlfq_config(MLFQConfig *c);
 
 #endif

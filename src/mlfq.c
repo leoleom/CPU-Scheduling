@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "scheduler.h"
 #include "gantt.h"
 
@@ -63,7 +65,7 @@ int schedule_mlfq(SchedulerState *state)
 
 // MLFQ HELPERS
 
-void mlfq_adjust_priority(MLFQScheduler *scheduler, Process *p)
+void mlfq_adjust_priority(MLFQScheduler *scheduler, Process *p, int current_time)
 {
     if (!p)
         return;
@@ -75,9 +77,16 @@ void mlfq_adjust_priority(MLFQScheduler *scheduler, Process *p)
     {
         // Demote to lower priority
         if (p->priority < scheduler->num_queues - 1)
-        {
+        {   
+            int old = p->priority;
             p->priority++;
             p->time_in_queue = 0; // Reset allotment
+
+            char buf[100];
+            sprintf(buf, "Process %s -> Q%d (exhausted Q%d allotment)",
+                    p->pid, p->priority, old);
+            log_mlfq_event(current_time, buf);
+            
         }
     }
 
@@ -104,6 +113,7 @@ void mlfq_priority_boost(MLFQScheduler *scheduler, int current_time)
             }
         }
         scheduler->last_boost = current_time;
+        log_mlfq_event(current_time, "Priority boost: all processes -> Q0");
     }
 }
 
@@ -112,17 +122,22 @@ void mlfq_check_preemption(SchedulerState *state, MLFQScheduler *sched)
     if (state->current_process == NULL)
         return;
 
-    for (int i = 0; i < state->current_process->priority; i++)
+    int curr_prio = state->current_process->priority;
+
+    for (int i = 0; i < curr_prio; i++)
     {
-        // if a higher-priority queue has a process, preempt current process
         if (sched->queues[i].size > 0)
         {
+            Process *running = state->current_process;
 
-            Process *p = state->current_process;
+            char buf[100];
+            sprintf(buf, "Process %s preempted by higher priority job", running->pid);
+            log_mlfq_event(state->current_time, buf);
 
-            // put the running process back into its queue
-            enqueue_mlfq(&sched->queues[p->priority], p);
+            enqueue_mlfq(&sched->queues[running->priority], running);
             state->current_process = NULL;
+
+            // schedule_mlfq(state);
             return;
         }
     }
@@ -146,4 +161,45 @@ void mlfq_select_next_process(SchedulerState *state, MLFQScheduler *sched)
             break;
         }
     }
+}
+
+MLFQConfig load_mlfq_config(const char *filename)
+{
+    FILE *fp = fopen(filename, "r");
+    if (!fp) {
+        perror("Failed to open MLFQ config");
+        exit(1);
+    }
+
+    MLFQConfig config;
+    fscanf(fp, "%d", &config.queues);
+
+    for (int i = 0; i < config.queues; i++) {
+        fscanf(fp, "%d %d",
+               &config.time_quantum[i],
+               &config.allotment[i]);
+    }
+
+    fscanf(fp, "%d", &config.boost_period);
+
+    fclose(fp);
+    return config;
+}
+
+void print_mlfq_config(MLFQConfig *c)
+{
+    printf("\n=== MLFQ Configuration ===\n");
+
+    for (int i = 0; i < c->queues; i++) {
+        if (c->time_quantum[i] == -1)
+            printf("Queue %d: FCFS (lowest priority)\n", i);
+        else
+            printf("Queue %d: q=%d, allotment=%d%s\n",
+                   i,
+                   c->time_quantum[i],
+                   c->allotment[i],
+                   (i == 0) ? " (highest priority)" : "");
+    }
+
+    printf("Boost period: %d\n", c->boost_period);
 }
