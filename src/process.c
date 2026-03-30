@@ -10,18 +10,35 @@ int load_processes(const char *filename, Process **p) {
         exit(1);
     }
 
-    Process *list = malloc(sizeof(Process) * 20);  // max 20 processes for now
+    int capacity = 4;
     int count = 0;
+    Process *list = malloc(sizeof(Process) * capacity);
+    if (!list) {
+        perror("Malloc failed");
+        exit(1);
+    }
 
     while (fscanf(fp, " %s %d %d",
                   list[count].pid,
                   &list[count].arrival_time,
-                  &list[count].burst_time) == 3) {
+                  &list[count].burst_time) == 3)
+    {
+        // resize if needed
+        if (count >= capacity - 1) {
+            capacity *= 2;
+            Process *temp = realloc(list, sizeof(Process) * capacity); // doubles capacity
+            if (!temp) {
+                perror("Reallocation failed");
+                free(list);
+                exit(1);
+            }
+            list = temp;
+        }
+
         count++;
     }
 
     fclose(fp);
-
     *p = list;
     return count;
 }
@@ -29,21 +46,49 @@ int load_processes(const char *filename, Process **p) {
 int load_command(const char *str, Process **p)
 {
     char *copy = strdup(str);
-    char *token = strtok(copy, ",");
+    if (!copy) {
+        perror("strdup failed");
+        exit(1);
+    }
 
-    Process *list = malloc(sizeof(Process) * 20); // adjust if needed
+    int capacity = 4;
     int count = 0;
+    Process *list = malloc(sizeof(Process) * capacity);
+    if (!list) {
+        perror("Malloc failed");
+        free(copy);
+        exit(1);
+    }
+
+    char *token = strtok(copy, ",");
 
     while (token != NULL)
     {
-        char pid[10];
+        if (count >= capacity - 1)
+        {
+            capacity *= 2;
+            Process *temp = realloc(list, sizeof(Process) * capacity); // doubles capacity
+            if (!temp) {
+                perror("Reallocation failed");
+                free(list);
+                free(copy);
+                exit(1);
+            }
+            list = temp;
+        }
+
+        char pid[16];
         int at, bt;
 
         if (sscanf(token, "%[^:]:%d:%d", pid, &at, &bt) == 3)
         {
-            strcpy(list[count].pid, pid);
+            // safe copy
+            strncpy(list[count].pid, pid, sizeof(list[count].pid) - 1);
+            list[count].pid[sizeof(list[count].pid) - 1] = '\0';
+
             list[count].arrival_time = at;
             list[count].burst_time = bt;
+
             count++;
         }
         else
