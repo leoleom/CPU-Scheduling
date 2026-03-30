@@ -32,11 +32,6 @@ int schedule_stcf(SchedulerState *state, MinHeap *heap)
         track_context_switch(state, shortest);
     }
     state->current_process = shortest;
-
-    printf("Process %s starts at t=%d\n",
-        shortest->pid,
-        state->current_time);
-
     state->current_process->last_start_time = state->current_time; // track start time for accurate remaining time on preemption
 
     // record start time

@@ -436,15 +436,12 @@ void detect_convoy_effect(SchedulerState *state) {
     for (int i = 0; i < state->num_processes; i++)
         total_wait += state->processes[i].waiting_time;
 
-    float avg_wait = (float)total_wait / state->num_processes;
-
     int convoy_found = 0;
 
     for (int i = 0; i < state->num_processes; i++) {
         Process *p = &state->processes[i];
 
-        // threshold: any process waiting longer than average
-        if (p->waiting_time > avg_wait) {
+        if (p->waiting_time > 0) {
             if (!convoy_found) {
                 printf("Convoy effect detected:\n");
                 convoy_found = 1;
