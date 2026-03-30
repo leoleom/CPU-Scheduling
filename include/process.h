@@ -19,6 +19,7 @@ typedef struct {
 } Process;
 
 int load_processes(const char *filename, Process **processes);
+int load_command(const char *str, Process **processes);
 
 
 #endif

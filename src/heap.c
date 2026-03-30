@@ -7,7 +7,6 @@ static void swap(Process **a, Process **b)
     Process *temp = *a;
     *a = *b;
     *b = temp;
-    printf("[DEBUG] swap: %c <-> %c\n", (*a)->pid[0], (*b)->pid[0]);
 }
 
 static void heapify_up(MinHeap *heap, int index, int (*cmp)(Process *, Process *))
@@ -17,8 +16,6 @@ static void heapify_up(MinHeap *heap, int index, int (*cmp)(Process *, Process *
         int parent = (index - 1) / 2;
         if (cmp(heap->process[index], heap->process[parent]) < 0)
         {
-            printf("[DEBUG] heapify_up: swapping %c with parent %c\n",
-                   heap->process[index]->pid[0], heap->process[parent]->pid[0]);
             swap(&heap->process[index], &heap->process[parent]);
             index = parent;
         }
@@ -46,8 +43,6 @@ static void heapify_down(MinHeap *heap, int index, int (*cmp)(Process *, Process
 
         if (smallest != index)
         {
-            printf("[DEBUG] heapify_down: swapping %c with child %c\n",
-                   heap->process[index]->pid[0], heap->process[smallest]->pid[0]);
             swap(&heap->process[index], &heap->process[smallest]);
             index = smallest;
         }
@@ -82,7 +77,6 @@ MinHeap *create_heap(int capacity)
     heap->size = 0;
     heap->capacity = capacity;
 
-    printf("[DEBUG] create_heap: new heap created with capacity %d\n", capacity);
     return heap;
 }
 
@@ -103,14 +97,11 @@ void heap_insert(MinHeap *heap, Process *proc, int (*cmp)(Process *, Process *))
 
         heap->capacity = new_capacity;
         heap->process = temp;
-        printf("[DEBUG] heap_insert: heap expanded to capacity %d\n", new_capacity);
     }
 
     heap->process[heap->size] = proc;
     heapify_up(heap, heap->size, cmp);
     heap->size++;
-
-    printf("[DEBUG] heap_insert: heap size now %d\n", heap->size);
 }
 
 // extract min process
@@ -120,7 +111,6 @@ Process *heap_extract_min(MinHeap *heap, int (*cmp)(Process *, Process *))
         return NULL; // empty heap
 
     Process *min_proc = heap->process[0];
-    printf("[DEBUG] heap_extract_min: removing %c from top\n", min_proc->pid[0]);
 
     heap->process[0] = heap->process[heap->size - 1];
     heap->size--;
@@ -139,7 +129,6 @@ Process *heap_peek(MinHeap *heap)
 {
     if (!heap || heap->size == 0)
         return NULL;
-    printf("[DEBUG] heap_peek: top is %c\n", heap->process[0]->pid[0]);
     return heap->process[0];
 }
 
@@ -150,6 +139,5 @@ void free_heap(MinHeap *heap)
     {
         free(heap->process);
         free(heap);
-        printf("[DEBUG] free_heap: heap memory freed\n");
     }
 }

@@ -73,25 +73,14 @@ int main(int argc, char *argv[])
     if (command_processes)
     {
         count = load_command(command_processes, &state.processes);
-        printf("[DEBUG] Loaded %d processes from string\n", count);
     }
     else
     {
         count = load_processes(input, &state.processes);
-        printf("[DEBUG] Loaded %d processes from file '%s'\n", count, input);
     }
 
     state.num_processes = count; // restore number of processes
-    printf("[DEBUG] Loaded %d processes from '%s'\n", count, input);
-    for (int i = 0; i < count; i++)
-    {
-        printf("[DEBUG] Process %s: AT=%d, BT=%d\n",
-               state.processes[i].pid,
-               state.processes[i].arrival_time,
-               state.processes[i].burst_time);
-    }
     init_scheduler(&state);
-    printf("[DEBUG] Scheduler initialized\n");
 
     if (strcmp(algorithm_str, "FCFS") == 0)
     {
@@ -111,7 +100,6 @@ int main(int argc, char *argv[])
             free(state.processes);
             return 1;
         }
-        printf("[DEBUG] Heap created with capacity %d\n", state.heap->capacity);
     }
     else if (strcmp(algorithm_str, "RR") == 0)
     {
@@ -152,16 +140,13 @@ int main(int argc, char *argv[])
         total_time += state.processes[i].burst_time;
     }
     gantt_init(total_time + 10);
-    printf("[DEBUG] Gantt chart initialized with size %d\n", total_time + 10);
 
-    printf("[DEBUG] Heap=%p, processes=%p, \n", (void *)state.heap, (void *)state.processes);
     if (simulate_scheduler(&state, algorithm) == -1)
     {
         fprintf(stderr, "Simulation failed.\n");
         free(state.processes);
         return 1;
     }
-    printf("[DEBUG] Scheduler simulation completed\n");
 
     gantt_print(state.current_time);
     gantt_free();

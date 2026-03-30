@@ -14,7 +14,7 @@ int simulate_scheduler(SchedulerState *state,
 
     int prev_time = state->last_event_time;
 
-    printf("[DEBUG] Simulation started for algorithm %d\n", algorithm);
+    printf("Simulation started for algorithm %s\n", get_algorithm_name(algorithm));
 
     while (state->event_queue != NULL)
     {
@@ -38,7 +38,6 @@ int simulate_scheduler(SchedulerState *state,
         // no one is running, IGNORE the next scheduled events
         if (!work_left)
         {
-            printf("[DEBUG] All processes finished at %d. Terminating loop.\n", state->current_time);
             break;
         }
 
@@ -67,8 +66,6 @@ int simulate_scheduler(SchedulerState *state,
                 state->current_process->time_in_queue += delta;
             }
         }
-
-        printf("[DEBUG] Processing event type %d at time %d\n", current->type, state->current_time);
         Process *running = state->current_process; // save currently running process
 
         // fill gantt chart first before handling event
@@ -86,7 +83,6 @@ int simulate_scheduler(SchedulerState *state,
         switch (current->type)
         {
             case EVENT_ARRIVAL:
-                printf("[DEBUG] Event: ARRIVAL of process %s\n", current->process->pid);
                 switch (algorithm)
                 {
                 case FCFS:
@@ -95,16 +91,12 @@ int simulate_scheduler(SchedulerState *state,
                     break;
                 case SJF:
                     handle_arrivals_sjf(state, state->heap, state->current_time);
-                    printf("[DEBUG] Heap size after arrivals: %d\n", state->heap->size);
-                    for (int i = 0; i < state->heap->size; i++)
-                        printf("  [DEBUG] Heap[%d] Process %c BT=%d\n", i, state->heap->process[i]->pid[0], state->heap->process[i]->burst_time);
                     break;
                 case STCF:
                     handle_arrivals_stcf(state, state->heap, state->current_time);
                     break;
                 case MLFQ:
                     handle_arrivals_mlfq(state, &state->mlfq, state->current_time);
-                    printf("[DEBUG] MLFQ ready queues after arrivals\n");
                     break;
                 }
                 break;
@@ -115,11 +107,9 @@ int simulate_scheduler(SchedulerState *state,
                     free(current);
                     continue;
                 }
-                printf("[DEBUG] Event: COMPLETION of process %s\n", current->process->pid);
 
                 handle_completion(state, current->process);
                 state->current_process = NULL;
-                printf("[DEBUG] Process %s finished at time %d\n", current->process->pid, state->current_time);
 
                 break;
 
@@ -130,20 +120,16 @@ int simulate_scheduler(SchedulerState *state,
                     continue;
                 }
 
-                printf("[DEBUG] Event: QUANTUM_EXPIRE for process %s\n", current->process->pid);
-
                 handle_quantum_expire(state, current->process, algorithm);
                 if (algorithm == MLFQ)
                 {
                     mlfq_adjust_priority(&state->mlfq, current->process);
-                    printf("[DEBUG] Process %s priority adjusted in MLFQ\n", current->process->pid);
                 }
                 state->current_process = NULL; // pick next process
 
                 break;
 
             case EVENT_PRIORITY_BOOST:
-                printf("[DEBUG] Event: PRIORITY_BOOST at time %d\n", state->current_time);
                 handle_priority_boost(state);
                 break;
         }
@@ -173,27 +159,20 @@ int simulate_scheduler(SchedulerState *state,
                 sched_result = schedule_mlfq(state);
                 break;
             default:
-                printf("[DEBUG] Unknown scheduling algorithm.\n");
+                printf("Unknown scheduling algorithm.\n");
             }
 
             if (sched_result == -1)
             {
-                fprintf(stderr, "[DEBUG] Scheduler error: failed to schedule next process "
+                fprintf(stderr, "Scheduler error: failed to schedule next process "
                                 "(algorithm=%d, time=%d)\n",
                         algorithm, state->current_time);
                 return -1;
             }
-
-            if (state->current_process)
-                printf("[DEBUG] Next process scheduled: %s at time %d\n",
-                       state->current_process->pid, state->current_time);
-            else
-                printf("[DEBUG] No process scheduled at time %d\n", state->current_time);
         }
     }
 
     calculate_metrics(state->processes, state->num_processes);
-    printf("[DEBUG] Metrics calculated for all processes\n");
 
     return 0;
 }
@@ -203,10 +182,6 @@ void track_context_switch(SchedulerState *state, Process *next)
     if (state->last_process != NULL && state->last_process != next)
     {
         state->context_switches++;
-        printf("[DEBUG] Context switch: from %s to %s at time %d\n",
-               state->last_process->pid,
-               next ? next->pid : "-",
-               state->current_time);
     }
 
     state->last_process = next;

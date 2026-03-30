@@ -108,5 +108,6 @@ int schedule_mlfq(SchedulerState *state);
 
 void track_context_switch(SchedulerState *state, Process *next_process);
 void detect_convoy_effect(SchedulerState *state);
+const char* get_algorithm_name(SchedulingAlgorithm algo);
 
 #endif
