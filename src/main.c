@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
         else if (strncmp(argv[i], "--quantum=", 10) == 0)
         {
             quantum = atoi(argv[i] + 10);
+            printf("Using time quantum q=%d\n\n", quantum);
         }
         else if (strncmp(argv[i], "--processes=", 12) == 0)
         {
@@ -170,6 +171,7 @@ int main(int argc, char *argv[])
     {
         detect_convoy_effect(&state);
     }
+    printf("\nTotal context switches: %d\n", state.context_switches);
     print_metrics_calculation(state.processes, state.num_processes);
 
     if (algorithm == MLFQ)

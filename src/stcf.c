@@ -19,6 +19,14 @@ int schedule_stcf(SchedulerState *state, MinHeap *heap)
 
     // pick shortest remaining process
     Process *shortest = heap_extract_min(heap, cmp_stcf);
+    if (shortest->was_preempted)
+    {
+        printf("Process %s resumed at t=%d\n",
+            shortest->pid,
+            state->current_time);
+
+        shortest->was_preempted = 0;
+    }
     if (state->current_process != shortest)
     {
         track_context_switch(state, shortest);

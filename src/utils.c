@@ -218,6 +218,14 @@ void handle_arrivals_stcf(SchedulerState *state, MinHeap *heap, int time)
             int delta = state->current_time - state->last_event_time;
             state->current_process->remaining_time -= delta;
 
+            printf("Process %s was preempted at t=%d (remaining: %d)\n",
+            state->current_process->pid,
+            state->current_time,
+            state->current_process->remaining_time);
+
+           
+            state->current_process->was_preempted = 1; //marked as preempted
+
             heap_insert(heap, state->current_process, cmp_stcf);
             state->current_process = NULL;
         }
