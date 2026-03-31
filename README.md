@@ -297,10 +297,15 @@ make test
 ## MLFQ Workloads
 
 **Configuration**
+
 Number of Qeueu: 3
-10 50 
-20 160
--1 -1 
+
+Q0: 10 50 
+
+Q1: 20 160
+
+Q2:-1 -1 
+
 Boost Period: 300
 
 **Short Jobs**
