@@ -27,9 +27,6 @@ cd CPU-Scheduling
 make clean    # Remove previous builds
 make          # Compile the project
 ```
-
-The compiled executable `schedsim` will be created in the project root directory.
-
 ---
 
 ## Usage Instructions
@@ -45,8 +42,8 @@ The compiled executable `schedsim` will be created in the project root directory
 |----------|----------|-------------|
 | `--algorithm=<ALG>` | Yes | Scheduling algorithm: `FCFS`, `SJF`, `STCF`, `RR`, or `MLFQ` |
 | `--input=<FILE>` | Conditional | Input file with process definitions (if not using `--processes`) |
-| `--processes=<LIST>` | Conditional | Comma-separated process list in format: `PID:AT:BT` (e.g., `A:0:8,B:1:4`) |
-| `--quantum=<TIME>` | No | Time quantum for RR/MLFQ algorithms (default: 10) |
+| `--processes=<LIST>` | Conditional | Comma-separated process list in format: `"PID:AT:BT"` (e.g., `"A:0:8,B:1:4"`) |
+| `--quantum=<TIME>` | No | Time quantum for RR algorithms (default: 30) |
 | `--compare` | No | Run comparison mode across all algorithms |
 
 ### Input File Format
@@ -75,6 +72,7 @@ E 30 130
    - Non-preemptive scheduling
    - Processes executed in arrival order
    - Fair but may cause long wait times for later processes
+   - Detection of Convoy Effect
 
 2. **SJF (Shortest Job First)**
    - Non-preemptive scheduling
@@ -86,14 +84,14 @@ E 30 130
    - Preemptive variant of SJF
    - Scheduler checks for shorter processes at each time unit
    - Optimal for minimizing average wait time
-   - Also called Shortest Remaining Time (SRT)
+   - Preemption and Resumption logs
 
 4. **RR (Round Robin)**
    - Preemptive scheduling
    - Each process gets a fixed time quantum
    - Processes returning to ready queue when quantum expires
    - Better response time and fairness
-   - Configurable quantum (default: 10 time units)
+   - Configurable quantum (default: 30 time units)
 
 5. **MLFQ (Multi-Level Feedback Queue)**
    - Preemptive scheduling with priority levels
@@ -105,15 +103,20 @@ E 30 130
 ### Additional Features
 
 - **Gantt Chart Generation**: Visual representation of process execution timeline
+   - Per unit time counting for short process
+   - Scaled for long and small processes
 - **Performance Metrics**:
+  - Arrival Time (AT)
+  - Burst Time (BT)
+  - Finish Time (FT)
   - Waiting Time (WT): Time spent waiting in ready queue
   - Turnaround Time (TAT): Total time from arrival to completion
   - Response Time (RT): Time from arrival to first execution
-  - Average metrics across all processes
+  - Average metrics (TAT, WT, RT) across all processes
+  - Detailed Per Process Calculation to Check Answers
 - **Process Management**: Tracks process state, arrival, and burst times
 - **Event-Driven Simulation**: Efficient event scheduling using min heap
 - **Comparison Mode**: Run all algorithms on same input for performance comparison
-- **Debug Output**: Detailed logging of process loading and scheduling steps
 
 ---
 
@@ -123,69 +126,72 @@ E 30 130
 ```bash
 ./schedsim --algorithm=FCFS --input=tests/quiz4.txt
 ```
+**Output**
+<img src="images/FCFS_Output.jpg" alt="FCFS Output" width="500">
+![FCFS Output](images/FCFS_Output.jpg)
 
-**Expected Output Structure:**
-```
-[DEBUG] Loaded 5 processes from file 'tests/quiz4.txt'
-[DEBUG] Process A: AT=0, BT=240
-[DEBUG] Process B: AT=10, BT=180
-[DEBUG] Process C: AT=20, BT=150
-[DEBUG] Process D: AT=25, BT=80
-[DEBUG] Process E: AT=30, BT=130
-[DEBUG] Scheduler initialized
-
-========== FCFS Scheduling ==========
-Gantt Chart:
-| A (0-240) | B (240-420) | C (420-570) | D (570-650) | E (650-780) |
-
-Metrics:
-Process  Arrival  Burst  Start  End  Waiting  Turnaround
-A        0        240    0      240  0        240
-B        10       180    240    420  230      410
-C        20       150    420    570  400      550
-D        25       80     570    650  545      625
-E        30       130    650    780  620      750
-
-Average Waiting Time: 359.0
-Average Turnaround Time: 515.0
-```
-
-### 2. SJF Algorithm
+### 2. SJF Algorithm with Command Line Input
 ```bash
-./schedsim --algorithm=SJF --input=tests/quiz4.txt
+./schedsim --algorithm=SJF --processes="A:0:240,B:10:180,C:20:150,D:25:80,E:30:130"
 ```
+**Output**
+<img src="images/SJF_Output.jpg" alt="SJF Output" width="500">
 
 ### 3. Round Robin with Custom Quantum
 ```bash
 ./schedsim --algorithm=RR --input=tests/quiz4.txt --quantum=20
 ```
+<img src="images/RR20_Output.jpg" alt="Round Robin (q=20)" width="500">
+
+**With default time quantum = 30**
+./schedsim --algorithm=RR --input=tests/quiz4.txt 
+<img src="images/RR30_Output.jpg" alt="Round Robin (q=30) Output" width="500">
 
 ### 4. MLFQ Algorithm
 ```bash
-./schedsim --algorithm=MLFQ --input=tests/quiz4.txt --quantum=8
+./schedsim --algorithm=MLFQ --input=tests/quiz4.txt 
 ```
+```bash
+./schedsim --algorithm=MLFQ --mlfq-config=mlfq_config.txt --input=tests/quiz4.txt
+``` 
 
-### 5. Compare All Algorithms
+**Output**
+<img src="images/MLFQ_Output.jpg" alt="MLFQ Output" width="500">
+
+### 5. STCF Algorithm
+```bash
+./schedsim --algorithm=STCF --input=tests/quiz4.txt 
+```
+<img src="images/STCF_Output.jpg" alt="STCF Output" width="500">
+
+### 6. Compare All Algorithms
 ```bash
 ./schedsim --compare --input=tests/quiz4.txt
 ```
 
-**Expected Output:**
-```
-Running comparison across all scheduling algorithms...
-
-Algorithm    Avg Wait Time    Avg Turnaround    Avg Response
-FCFS         359.0            515.0             0.0
-SJF          290.0            446.0             0.0
-STCF         290.0            446.0             0.0
-RR           260.0            416.0             40.0
-MLFQ         255.0            411.0             35.0
-```
-
-### 6. Using Process Command-Line Argument
+**With time quantum**
 ```bash
-./schedsim --algorithm=FCFS --processes=A:0:8,B:1:4,C:2:2
+./schedsim --compare --input=tests/quiz4.txt --quantum=20
 ```
+**Command Line Processes**
+```bash
+./schedsim --compare --processes="A:0:240,B:10:180,C:20:150,D:25:80,E:30:130" --quantum=20
+```
+
+**Expected Output:**
+<img src="images/Compare_Output.jpg" alt="Average Comparison Output" width="500">
+
+### 7. Detailed Calculation Per Process
+
+**Round Robin Algorithm Example for Quiz 4**
+<img src="images/Calculation.jpg" alt="Detailed Per Process Calculation for Round Robin" width="500">
+
+### 8. Automated Test
+```bash
+make test
+```
+<img src="images/Auto_Output.jpg" alt="Detailed Per Process Calculation for Round Robin" width="500">
+
 
 ---
 
@@ -203,21 +209,16 @@ MLFQ         255.0            411.0             35.0
 
 ### Limitations
 
-1. **Memory Constraints**: Maximum process capacity depends on allocated memory; no dynamic expansion tested at extreme scales
-2. **No Process Priority Input**: Cannot specify explicit priority levels from input file (MLFQ priority is dynamic only)
-3. **Fixed MLFQ Configuration**: Number of queue levels and queue-specific quanta are hardcoded
-4. **No Aging Mechanism**: Processes can starve in lower priority queues (no anti-starvation aging)
-5. **Gantt Chart Text Output**: No graphical visualization; only text-based chart output
-6. **Limited Error Handling**: Malformed input files may cause undefined behavior rather than graceful error messages
-7. **No Preemption Overhead**: Real systems have context switch cost; this simulator assumes zero cost
-8. **Input File Size**: No tested upper limit on number of processes; extremely large files not recommended
-9. **Floating Point Metrics**: Average calculations use floating-point, potential for precision issues
+1. **No Process Priority Input**: Cannot specify explicit priority levels from input file (MLFQ priority is dynamic only)
+2. **Fixed MLFQ Configuration**
+3. **No Aging Mechanism**: Processes can starve in lower priority queues (no anti-starvation aging)
+4. **Limited Error Handling**: Malformed input files may cause undefined behavior rather than graceful error messages
+5. **Floating Point Metrics**: Average calculations use floating-point, potential for precision issues
 
 ### Known Issues
 
 - MLFQ behavior may vary based on queue configuration (not fully documented)
 - Comparison mode assumes all algorithms complete; may hang on certain edge cases
-- Debug output is verbose and cannot be disabled without code modification
 
 ---
 
@@ -245,15 +246,23 @@ CPU-Scheduling/
 │   ├── gantt.h           # Gantt chart interface
 │   ├── metrics.h         # Metrics calculation interface
 │   ├── heap.h            # Heap interface
-│   └── ...
-├── tests/                 # Test input files
-│   ├── quiz4.txt         # Sample workload
-│   ├── workload.txt      # Additional test cases
-│   └── test_suite.sh     # Test script
+│   └── mlfq.h
+    └── compare.h
+├── tests/                           # Test input files
+│   ├── quiz4.txt                    # Sample workload
+│   ├── expected_results.txt         # Expected Results from test cases
+│   └── test_suite.sh                # Test script      
+│   ├── simultaneous_arrivals.txt    # Additional edge cases
+│   └── single_process.txt           # Additional edge cases                   
+│   ├── staircase_arrivals.txt       # Additional edge cases
+│   └── zero_burst.txt               # Additional edge cases    
+│   ├── identical_burst.txt          # Additional test cases
+│   └── single_process.txt           # Additional test cases
+    └── large_workload.txt           # Additional test cases
 ├── docs/                 # Documentation
 │   └── mlfq_design.md    # MLFQ design documentation
 ├── Makefile              # Build configuration
-└── README.md             # This file
+└── README.md            
 ```
 
 ---
@@ -263,6 +272,12 @@ CPU-Scheduling/
 To remove compiled files and binaries:
 ```bash
 make clean
+```
+
+## Automatest test
+
+```bash
+make test
 ```
 
 ---
