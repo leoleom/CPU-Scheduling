@@ -89,6 +89,8 @@ int simulate_scheduler(SchedulerState *state,
                 switch (algorithm)
                 {
                 case FCFS:
+                    handle_arrivals_queue(state, state->current_time);
+                    break;
                 case RR:
                     handle_arrivals_queue(state, state->current_time);
                     break;

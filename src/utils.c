@@ -180,9 +180,10 @@ void handle_arrivals_queue(SchedulerState *state, int time)
     {
         Process *p = &state->processes[i];
 
-        if (p->arrival_time == time)
+        if (p->arrival_time == time && !p->enqueued)
         {
             enqueue(&state->ready_queue, p);
+            p->enqueued = 1; // mark as enqueued
         }
     }
 }
@@ -205,12 +206,6 @@ void handle_arrivals_stcf(SchedulerState *state, MinHeap *heap, int time)
         Process *shortest = heap_peek(heap);
         if (shortest->remaining_time < state->current_process->remaining_time)
         {
-            printf("DEBUG: %s last_start=%d, now=%d, delta=%d\n",
-            shortest->pid,
-            shortest->last_start_time,
-            state->current_time,
-            state->current_time - shortest->last_start_time);
-
             printf("Process %s was preempted at t=%d (remaining: %d)\n",
             state->current_process->pid,
             state->current_time,
@@ -393,13 +388,6 @@ void handle_priority_boost(SchedulerState *state)
     MLFQScheduler *sched = &state->mlfq;
     // perform boost
     mlfq_priority_boost(sched, state->current_time);
-    
-    // if (state->current_process) {
-    //     state->current_process->priority = 0;
-    //     state->current_process->time_in_queue = 0;
-    //     enqueue_mlfq(&state->mlfq.queues[0], state->current_process);
-    //     state->current_process = NULL; 
-    // }
 
     if (state->current_process){
         Process *p = state -> current_process;
@@ -431,16 +419,25 @@ void detect_convoy_effect(SchedulerState *state) {
     if (!state || state->num_processes == 0)
         return;
 
-    // compute average waiting time
-    int total_wait = 0;
+    // make a copy of pointers to processes
+    Process **copy = malloc(sizeof(Process*) * state->num_processes);
     for (int i = 0; i < state->num_processes; i++)
-        total_wait += state->processes[i].waiting_time;
+        copy[i] = &state->processes[i];
+
+    // sort by waiting_time ascending
+    for (int i = 0; i < state->num_processes - 1; i++) {
+        for (int j = i + 1; j < state->num_processes; j++) {
+            if (copy[i]->waiting_time > copy[j]->waiting_time) {
+                Process *tmp = copy[i];
+                copy[i] = copy[j];
+                copy[j] = tmp;
+            }
+        }
+    }
 
     int convoy_found = 0;
-
     for (int i = 0; i < state->num_processes; i++) {
-        Process *p = &state->processes[i];
-
+        Process *p = copy[i];
         if (p->waiting_time > 0) {
             if (!convoy_found) {
                 printf("Convoy effect detected:\n");
@@ -449,6 +446,8 @@ void detect_convoy_effect(SchedulerState *state) {
             printf("  Process %s waited %d time units\n", p->pid, p->waiting_time);
         }
     }
+
+    free(copy);
 }
 
 const char* get_algorithm_name(SchedulingAlgorithm algo)
