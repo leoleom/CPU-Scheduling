@@ -127,14 +127,15 @@ E 30 130
 ./schedsim --algorithm=FCFS --input=tests/quiz4.txt
 ```
 **Output**
+
 <img src="images/FCFS_Output.jpg" alt="FCFS Output" width="500">
-![FCFS Output](images/FCFS_Output.jpg)
 
 ### 2. SJF Algorithm with Command Line Input
 ```bash
 ./schedsim --algorithm=SJF --processes="A:0:240,B:10:180,C:20:150,D:25:80,E:30:130"
 ```
 **Output**
+
 <img src="images/SJF_Output.jpg" alt="SJF Output" width="500">
 
 ### 3. Round Robin with Custom Quantum
@@ -145,6 +146,7 @@ E 30 130
 
 **With default time quantum = 30**
 ./schedsim --algorithm=RR --input=tests/quiz4.txt 
+
 <img src="images/RR30_Output.jpg" alt="Round Robin (q=30) Output" width="500">
 
 ### 4. MLFQ Algorithm
@@ -156,6 +158,7 @@ E 30 130
 ``` 
 
 **Output**
+
 <img src="images/MLFQ_Output.jpg" alt="MLFQ Output" width="500">
 
 ### 5. STCF Algorithm
@@ -179,11 +182,13 @@ E 30 130
 ```
 
 **Expected Output:**
+
 <img src="images/Compare_Output.jpg" alt="Average Comparison Output" width="500">
 
 ### 7. Detailed Calculation Per Process
 
 **Round Robin Algorithm Example for Quiz 4**
+
 <img src="images/Calculation.jpg" alt="Detailed Per Process Calculation for Round Robin" width="500">
 
 ### 8. Automated Test
@@ -279,7 +284,40 @@ make clean
 ```bash
 make test
 ```
+## Gantt Chart for Different Workloads
 
+**Not Scaled**
+
+<img src="images/Gantt1.jpg" alt="Not Scaled Gantt Chart" width="500">
+
+**Scaled**
+
+<img src="images/Gantt_Scaled.jpg" alt="Not Scaled Gantt Chart" width="500">
+
+## MLFQ Workloads
+
+**Configuration**
+Number of Qeueu: 3
+10 50 
+20 160
+-1 -1 
+Boost Period: 300
+
+**Short Jobs**
+
+<img src="images/short.jpg" alt="All Short Jobs" 
+
+**Long Jobs**
+
+<img src="images/long.jpg" alt="All Long Jobs" 
+
+**Mixed Workload**
+
+<img src="images/mixed.jpg" alt="Mixed Workloads" 
+
+**Bimodal Workload**
+
+<img src="images/bimodal.jpg" alt="Bimodal Workloads" 
 ---
 
 ## License

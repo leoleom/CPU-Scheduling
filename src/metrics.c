@@ -11,9 +11,9 @@ void calculate_metrics(Process *processes, int n) {
     for (int i = 0; i < n; i++) {
         Process *p = &processes[i];
         
-        if (p->finish_time < 0) {
-            p->finish_time = 0; // temporary fix to avoid negative metrics
-        }
+        // if (p->finish_time < 0) {
+        //     p->finish_time = 0; // temporary fix to avoid negative metrics
+        // }
 
         // Turnaround time = Finish time - Arrival time
         p->turnaround_time = p->finish_time - p->arrival_time;

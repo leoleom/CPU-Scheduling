@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
         else if (strncmp(argv[i], "--quantum=", 10) == 0)
         {
             quantum = atoi(argv[i] + 10);
-            printf("Using time quantum q=%d\n\n", quantum);
+            // printf("Using time quantum q=%d\n\n", quantum);
         }
         else if (strncmp(argv[i], "--mlfq-config=", 14) == 0)
         {
@@ -55,10 +55,16 @@ int main(int argc, char *argv[])
     }
 
     if (compare_mode)
-    {
-        run_comparison(input, quantum);
+    {   if (input) run_comparison(input, NULL, quantum);
+        else if (command_processes) run_comparison(NULL, command_processes, quantum);
+        else 
+        {
+            fprintf(stderr, "Error: No input provided for comparison mode.\n");
+            return 1;
+        }
         return 0;
     }
+
     if (!algorithm_str || (!input && !command_processes))
     {
         fprintf(stderr, "Usage: ./main --algorithm=FCFS --input=file.txt\n");
@@ -108,6 +114,7 @@ int main(int argc, char *argv[])
     }
     else if (strcmp(algorithm_str, "RR") == 0)
     {
+        printf("Time quantum set to %d\n\n", quantum);
         algorithm = RR;
         state.rr_quantum = quantum;
     }

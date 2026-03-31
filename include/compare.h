@@ -10,7 +10,7 @@ typedef struct {
     int context_switches;
 } Comparison;
 
-Comparison run_algorithm(char *input, SchedulingAlgorithm algorithm, int quantum);
-void run_comparison(char *input, int quantum);
+Comparison run_algorithm(char *input, char *command, SchedulingAlgorithm algorithm, int quantum);
+void run_comparison(char *input, char *command, int quantum);
 
 #endif
