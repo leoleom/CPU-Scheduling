@@ -3,12 +3,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-Comparison run_algorithm(char *input, SchedulingAlgorithm algorithm, int quantum)
+Comparison run_algorithm(char *input, char *command, SchedulingAlgorithm algorithm, int quantum)
 {
     Comparison c;
     SchedulerState state = {0};
 
-    int count = load_processes(input, &state.processes);
+    int count = 0;
+    if (command)
+    {
+        count = load_command(command, &state.processes);
+    }
+    else
+    {
+        count = load_processes(input, &state.processes);
+    }
+
     if (count <= 0)
     {
         fprintf(stderr, "Error loading processes.\n");
@@ -60,13 +69,13 @@ Comparison run_algorithm(char *input, SchedulingAlgorithm algorithm, int quantum
     return c;
 }
 
-void run_comparison(char *input, int quantum)
+void run_comparison(char *input, char *command, int quantum)
 {
-    Comparison fcfs = run_algorithm(input, FCFS, quantum);
-    Comparison sjf  = run_algorithm(input, SJF, quantum);
-    Comparison stcf = run_algorithm(input, STCF, quantum);
-    Comparison rr   = run_algorithm(input, RR, quantum);
-    Comparison mlfq = run_algorithm(input, MLFQ, quantum);
+    Comparison fcfs = run_algorithm(input, command, FCFS, quantum);
+    Comparison sjf  = run_algorithm(input, command, SJF, quantum);
+    Comparison stcf = run_algorithm(input, command, STCF, quantum);
+    Comparison rr   = run_algorithm(input, command, RR, quantum);
+    Comparison mlfq = run_algorithm(input, command, MLFQ, quantum);
 
     printf("\n=== ALGORITHM COMPARISON ===\n");
 
