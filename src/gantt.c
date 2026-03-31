@@ -35,28 +35,33 @@ void gantt_print(int n)
     if (!gantt || n <= 0)
         return;
 
-    int scale = (n > 50) ? (n + 49) / 50 : 1;
-
     printf("\n=== GANTT CHART ===\n");
-    if (scale > 1)
-        printf("Scale: 1 block = %d time units\n\n", scale);
 
-    int i = 0;
-
-    //poper alignment for time markers
-    int *positions = malloc(sizeof(int) * n); //store position of [
-    int *times = malloc(sizeof(int) * n); //store time values
-    int pos_count = 0;
-
-    int opening_pos = 0; // [ position tracker
-    int time = 0;
+    int *positions = malloc(sizeof(int) * n);
+    int *times = malloc(sizeof(int) * n);
 
     if (!positions || !times) {
-    printf("Memory allocation failed\n");
-    return;
+        printf("Memory allocation failed\n");
+        return;
     }
 
-    // TOP BAR
+    int pos_count = 0;
+    int opening_pos = 0;
+    int time = 0;
+
+    int scale;
+
+    if (n >= 100) {
+        scale = 10;
+    } else {
+        scale = 1;               
+    }
+
+    if (scale > 1) {
+        printf("Scale: 1 block = %d units\n\n", scale);
+    }
+
+    int i = 0;
     while (i < n)
     {
         char current = gantt[i];
@@ -77,13 +82,19 @@ void gantt_print(int n)
 
         printf("[");
         opening_pos++;
+
+        printf("%c", current); // PID
+        opening_pos++;
+
         for (int j = 0; j < blocks; j++)
         {
-            printf("%c", current);
+            printf("-");
             opening_pos++;
         }
+
         printf("]");
-        opening_pos++;  
+        opening_pos++;
+
         time += count;
     }
 
@@ -101,7 +112,6 @@ void gantt_print(int n)
     {
         int target = positions[p];
 
-        // print spaces until the position of the time marker
         while (printed_time < target)
         {
             printf(" ");
@@ -109,10 +119,13 @@ void gantt_print(int n)
         }
 
         printf("%d", times[p]);
-        printed_time += snprintf(NULL, 0, "%d", times[p]); // move printed_time forward by the number of digits
+        printed_time += snprintf(NULL, 0, "%d", times[p]);
     }
 
     printf("\n");
+
+    free(positions);
+    free(times);
 }
 
 void gantt_free()
