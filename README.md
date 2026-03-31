@@ -305,20 +305,23 @@ Boost Period: 300
 
 **Short Jobs**
 
-<img src="images/short.jpg" alt="All Short Jobs" 
+<img src="images/short.jpg" alt="All Short Jobs">
 
 **Long Jobs**
 
-<img src="images/long.jpg" alt="All Long Jobs" 
+<img src = "images/long.jpg" alt="All long jobs">
 
 **Mixed Workload**
 
-<img src="images/mixed.jpg" alt="Mixed Workloads" 
+<img src="images/mixed.jpg" alt="Mixed Workloads">
 
 **Bimodal Workload**
 
-<img src="images/bimodal.jpg" alt="Bimodal Workloads" 
----
+<img src="images/bimodal.jpg" alt="Bimodal Workloads"> 
+
+
+**Shell Executable**
+<img src="images/shell_execute.jpg" alt="Bimodal Workloads">
 
 ## License
 
