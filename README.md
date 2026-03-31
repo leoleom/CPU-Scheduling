@@ -309,7 +309,7 @@ Boost Period: 300
 
 **Long Jobs**
 
-<img src = "images/long.jpg" alt="All long jobs">
+<img src="images/long.jpg" alt="All long jobs">
 
 **Mixed Workload**
 
