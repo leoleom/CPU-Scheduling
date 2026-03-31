@@ -1,0 +1,95 @@
+# Quiz 4 workload 
+# Expected results from lecture
+
+A 0 240
+B 10 180
+C 20 150
+D 25 80
+E 30 130
+
+# FCFS average TT should be 515
+# SJF average TT should be 461
+# STCF average TT should be 393
+# RR (q=30) average TT should be 627
+
+# Single Process workload
+# Expected results
+
+A 0 100
+
+# FCFS average TT should be 100
+# SJF average TT should be 100
+# STCF average TT should be 100
+# RR (q=30) average TT should be 100
+
+# Staircase Arrivals
+# Expected results
+
+A 0 10
+B 1 20
+C 2 20
+D 3 20
+E 4 20
+
+# FCFS average TT should be 58
+# SJF average TT should be 58
+# STCF average TT should be 58
+# RR (q=30) average TT should be 58
+
+# Simultaneous Arrivals
+# Expected Results
+
+A 0 10
+B 0 20
+C 0 3
+
+# FCFS average TT should be 24.3
+# SJF average TT should be 16.3
+# STCF average TT should be 16.3
+# RR (q=30) average TT should be 24.3
+
+# Identical Burst Times
+# Expected Results
+
+C 0 50
+B 2 50
+A 5 50
+
+# FCFS average TT should be 97.7
+# SJF average TT should be 97.7
+# STCF average TT should be 97.7
+# RR (q=30) average TT should be 127.7
+
+# Large Workload
+# Expected Results
+
+check input in large_workload.txt
+
+# FCFS average TT should be 77402.7
+# SJF average TT should be 4865.8
+# STCF average TT should be 4814.6
+# RR (q=30) average TT should be 9529.5
+
+# Identical Burst Times
+# Expected Results
+
+C 0 50
+B 2 50
+A 5 50
+
+# FCFS average TT should be 0
+# SJF average TT should be 0
+# STCF average TT should be 0
+# RR (q=30) average TT should be 0
+
+
+
+
+
+
+
+
+
+
+
+
