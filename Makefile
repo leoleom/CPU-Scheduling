@@ -32,4 +32,9 @@ $(SRC_DIR)/%.o: $(SRC_DIR)/%.c
 clean:
 	rm -f $(OBJS) $(TARGET)
 
+test: all
+	@echo "Running automated test suite..."
+	@chmod +x tests/test_suite.sh
+	@./tests/test_suite.sh
+
 .PHONY: all clean
